@@ -1,0 +1,2193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AssetFlow - Asset Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <!-- Chart.js for CategoryChart (instead of recharts) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --color-primary: #4f46e5; /* Indigo-600 */
+            --color-primary-dark: #4338ca;
+            --color-text-dark: #1e293b; /* Slate-800 */
+            --color-text-light: #475569; /* Slate-600 */
+            --color-border: #e2e8f0; /* Slate-200 */
+            --color-bg-light: #f8fafc; /* Slate-50 */
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-bg-light);                
+            color: var(--color-text-dark);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* --- Utility Classes (Mimicking Tailwind) --- */
+        .flex-row { display: flex; align-items: center; }
+        .flex-col { display: flex; flex-direction: column; }
+        .justify-between { justify-content: space-between; }
+        .justify-end { justify-content: flex-end; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-6 { gap: 1.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .pt-6 { padding-top: 1.5rem; }
+        .text-center { text-align: center; }
+        .mx-auto { margin-left: auto; margin-right: auto; }
+        .w-full { width: 100%; }
+
+        /* --- Navigation --- */
+        .header {
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--color-border);
+            padding: 1rem 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-link {
+            padding: 0.5rem 1rem;
+            margin-left: 0.5rem;
+            font-weight: 500;
+            color: var(--color-text-light);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .nav-link:hover, .nav-link.active {
+            background-color: var(--color-primary);
+            color: white;
+        }
+        .user-info {
+            font-size: 0.875rem;
+            color: var(--color-text-light);
+        }
+
+        /* --- Cards --- */
+        .card {
+            background-color: #ffffff;
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            transition: box-shadow 0.3s;
+        }
+        .card-list-item:hover {
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--color-text-dark);
+        }
+        .card-content {
+            padding: 1.5rem;
+        }
+        .card-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--color-border);
+        }
+
+        /* --- Buttons --- */
+        .btn {
+            padding: 0.6rem 1.2rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            user-select: none;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+            box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+        }
+        .btn-primary:hover {
+            background-color: var(--color-primary-dark);
+        }
+        .btn-outline {
+            background-color: white;
+            color: var(--color-text-light);
+            border-color: var(--color-border);
+        }
+        .btn-outline:hover {
+            background-color: var(--color-bg-light);
+            color: var(--color-text-dark);
+            border-color: var(--color-text-light);
+        }
+        .btn-destructive {
+            background-color: var(--color-danger);
+            color: white;
+        }
+        .btn-destructive:hover {
+            background-color: #c81d1d;
+        }
+        .btn-icon {
+            padding: 0.5rem;
+            background: none;
+            border: none;
+        }
+        .btn-icon:hover {
+            background-color: var(--color-bg-light);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* --- Forms --- */
+        .input, .textarea, .select-trigger {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            font-size: 1rem;
+            color: var(--color-text-dark);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: #ffffff;
+        }
+        .input:read-only, .input:disabled, .select-trigger:disabled {
+             background-color: var(--color-bg-light);
+             cursor: not-allowed;
+        }
+        .input:focus, .textarea:focus, .select-trigger:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+            outline: none;
+        }
+        .label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--color-text-dark);
+            margin-bottom: 0.5rem;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        @media (min-width: 768px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* --- Badges (Status/Priority) --- */
+        .badge {
+            display: inline-flex;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            border: 1px solid;
+            white-space: nowrap;
+        }
+        /* Asset Statuses */
+        .badge-active { background-color: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+        .badge-in_maintenance { background-color: #fef3c7; color: #b45309; border-color: #fcd34d; }
+        .badge-retired { background-color: #e2e8f0; color: #475569; border-color: #cbd5e1; }
+        .badge-lost { background-color: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        .badge-in_storage { background-color: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+
+        /* Loan Statuses */
+        .badge-loan-active { background-color: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+        .badge-loan-returned { background-color: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+        .badge-loan-overdue { background-color: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        .badge-loan-lost { background-color: #e2e8f0; color: #475569; border-color: #cbd5e1; }
+
+        /* Maintenance Statuses/Priorities */
+        .badge-maintenance-pending { background-color: #fef3c7; color: #b45309; border-color: #fcd34d; }
+        .badge-maintenance-approved { background-color: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+        .badge-maintenance-in_progress { background-color: #e9d5ff; color: #7e22ce; border-color: #d8b4fe; }
+        .badge-maintenance-completed { background-color: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+        .badge-priority-low { background-color: #dbeafe; color: #1e40af; border: none;}
+        .badge-priority-medium { background-color: #fcd34d; color: #b45309; border: none;}
+        .badge-priority-high { background-color: #fdb962; color: #c04900; border: none;}
+        .badge-priority-critical { background-color: #fecaca; color: #991b1b; border: none;}
+
+        /* Procurement Statuses/Urgency */
+        .badge-procurement-pending { background-color: #fef3c7; color: #b45309; border-color: #fcd34d; }
+        .badge-procurement-manager_approved { background-color: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+        .badge-procurement-admin_approved { background-color: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+        .badge-procurement-rejected { background-color: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        .badge-procurement-purchased { background-color: #e9d5ff; color: #7e22ce; border-color: #d8b4fe; }
+        .badge-procurement-delivered { background-color: #bae6fd; color: #075985; border-color: #7dd3fc; }
+        .badge-urgency-low { background-color: #dbeafe; color: #1e40af; border: none;}
+        .badge-urgency-medium { background-color: #fcd34d; color: #b45309; border: none;}
+        .badge-urgency-high { background-color: #fdb962; color: #c04900; border: none;}
+        .badge-urgency-urgent { background-color: #fecaca; color: #991b1b; border: none;}
+
+        /* Property Statuses */
+        .badge-property-active { background-color: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+        .badge-property-vacant { background-color: #fef3c7; color: #b45309; border-color: #fcd34d; }
+        .badge-property-under_renovation { background-color: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+        .badge-property-for_sale { background-color: #e9d5ff; color: #7e22ce; border-color: #d8b4fe; }
+        .badge-property-retired { background-color: #e2e8f0; color: #475569; border-color: #cbd5e1; }
+
+        /* Vendor Statuses */
+        .badge-vendor-active { background-color: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+        .badge-vendor-inactive { background-color: #e2e8f0; color: #475569; border-color: #cbd5e1; }
+        .badge-vendor-blacklisted { background-color: #fee2e2; color: #991b1b; border-color: #fecaca; }
+
+        /* --- Stats Card Styling (from StatsCard.jsx) --- */
+        .stat-icon-container {
+            padding: 0.75rem;
+            border-radius: 12px;
+        }
+        .stat-icon { width: 24px; height: 24px; color: var(--color-text-dark); }
+        .stat-value { font-size: 2.25rem; font-weight: 700; color: var(--color-text-dark); margin-top: 0.5rem; }
+        .stat-title { font-size: 0.75rem; font-weight: 500; color: var(--color-text-light); text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-subtitle { font-size: 0.875rem; color: var(--color-text-light); margin-top: 0.5rem; }
+
+        /* --- Onboarding Styling --- */
+        .onboarding {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+            color: white;
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+        }
+        .onboarding-icon-wrapper {
+            width: 96px; height: 96px;
+            margin: 0 auto 1.5rem;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+        .onboarding h2 { font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .onboarding p { color: #e0e7ff; max-width: 400px; margin: 0.5rem auto 1.5rem; }
+        .btn-onboarding {
+            background-color: white;
+            color: var(--color-primary);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn-onboarding:hover {
+            background-color: #f0f4ff;
+        }
+
+        /* --- Recent Assets List --- */
+        .recent-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--color-border);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .recent-item:last-child { border-bottom: none; }
+        .recent-item:hover { background-color: var(--color-bg-light); }
+        .recent-item h4 { font-weight: 500; font-size: 1rem; margin: 0; }
+        .recent-item p { font-size: 0.875rem; color: var(--color-text-light); margin: 0; }
+        .recent-item .asset-date { font-size: 0.75rem; color: #94a3b8; }
+
+        /* --- Assets List View --- */
+        .asset-list-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .asset-card-icon {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, #eef2ff, #f0f4ff);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .asset-card-prop {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+            color: var(--color-text-light);
+            padding-bottom: 0.5rem;
+        }
+        .asset-card-prop-value {
+            font-weight: 500;
+            color: var(--color-text-dark);
+            text-align: right;
+        }
+        .asset-card-footer {
+            padding: 1rem;
+            border-top: 1px solid var(--color-border);
+            background-color: #f8fafc;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .asset-card-footer p { margin: 0; }
+
+        /* --- Modals (Forms) --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+        .modal-content {
+            background-color: white;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 700px;
+            margin: 2rem 0;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* --- Responsive Grid Layouts --- */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        .dashboard-main { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .dashboard-secondary { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr; gap: 20px; }
+        
+        @media (min-width: 768px) {
+            .dashboard-secondary { grid-template-columns: 1fr 1fr; }
+        }
+        @media (min-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 3fr 1fr;
+            }
+            .dashboard-main { grid-column: 1 / 2; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+            .dashboard-secondary { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; }
+        }
+        
+        /* Main Application Layout (Including Side Navigation) */
+        .main-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        @media (min-width: 900px) {
+            .main-layout {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+            .side-nav-container {
+                flex-shrink: 0;
+                width: 250px;
+                position: sticky;
+                top: 20px;
+            }
+            .content-area-wrapper {
+                flex-grow: 1;
+            }
+        }
+        
+        .side-nav-container {
+            background-color: white;
+            border-radius: 12px;
+            border: 1px solid var(--color-border);
+            padding: 1rem 0;
+            width: 100%;
+        }
+        .side-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1.5rem;
+            color: var(--color-text-light);
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .side-nav-link:hover, .side-nav-link.active {
+            background-color: var(--color-primary);
+            color: white;
+        }
+        .side-nav-link.active {
+            border-left: 4px solid var(--color-primary);
+        }
+        .side-nav-link:not(.active):hover {
+            background-color: var(--color-bg-light);
+            color: var(--color-text-dark);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--color-text-dark);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Application Container -->
+    <div id="app">
+        <div class="header">
+            <div class="header-content">
+                <div class="flex-row">
+                    <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary);">AssetFlow</h1>
+                    <nav class="flex-row" id="main-nav-links">
+                        <a href="#" class="nav-link active" data-page="dashboard">Dashboard</a>
+                        <a href="#" class="nav-link" data-page="assets">Assets</a>
+                        <a href="#" class="nav-link" data-page="loans">Loans</a>
+                        <a href="#" class="nav-link" data-page="maintenance">Maintenance</a>
+                        <a href="#" class="nav-link" data-page="procurement">Procurement</a>
+                        <a href="#" class="nav-link" data-page="vendors">Vendors</a>
+                        <a href="#" class="nav-link" data-page="properties">Properties</a>
+                    </nav>
+                </div>
+                <div class="user-info flex-row gap-4">
+                    <span id="user-display">Loading User...</span>
+                    <button class="btn btn-primary" onclick="showAddModalForCurrentPage()">
+                        <span data-lucide="plus" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                        Add New
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container main-layout">
+            
+            <!-- Dynamic Content Area -->
+            <div id="content-area" class="content-area-wrapper">
+                <!-- Content will be injected here -->
+            </div>
+        </div>
+
+        <!-- Notification/Message Box -->
+        <div id="message-box" class="card" style="position: fixed; top: 20px; right: 20px; z-index: 101; display: none; padding: 1rem; max-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"></div>
+        
+    </div>
+
+    <!-- Modals Container -->
+    <div id="modals-container">
+        <!-- Forms will be injected here: Asset, Loan, Maintenance, Procurement, Property, Vendor -->
+    </div>
+
+    <script type="module">
+        // --- FIREBASE INITIALIZATION & AUTH ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, addDoc, updateDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // --- DATE-FNS IMPORTS (ESM Version) ---
+        import { format } from "https://unpkg.com/date-fns@2.29.3/esm/format/index.js?module";
+        import { isPast } from "https://unpkg.com/date-fns@2.29.3/esm/isPast/index.js?module";
+        import { parseISO } from "https://unpkg.com/date-fns@2.29.3/esm/parseISO/index.js?module";
+        
+        setLogLevel('Debug');
+        
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-asset-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        let app, db, auth;
+        let userId = null;
+        let isAuthReady = false;
+
+        // --- GLOBAL CONSTANTS ---
+
+        const CATEGORIES = [
+            { value: "computer", label: "Computer" }, { value: "mobile_device", label: "Mobile Device" }, 
+            { value: "furniture", label: "Furniture" }, { value: "vehicle", label: "Vehicle" }, 
+            { value: "software_license", label: "Software License" }, { value: "office_equipment", label: "Office Equipment" }, 
+            { value: "machinery", label: "Machinery" }, { value: "networking", label: "Networking" }, 
+            { value: "other", label: "Other" }
+        ];
+        const ASSET_STATUSES = [
+            { value: "active", label: "Active" }, { value: "in_maintenance", label: "In Maintenance" }, 
+            { value: "retired", label: "Retired" }, { value: "lost", label: "Lost" }, 
+            { value: "in_storage", label: "In Storage" }
+        ];
+
+        const ASSET_CATEGORIES = CATEGORIES.reduce((acc, cat) => { acc[cat.value] = cat.label; return acc; }, {});
+        
+        const categoryIcons = {
+            computer: "💻", mobile_device: "📱", furniture: "🪑", vehicle: "🚗", 
+            software_license: "💿", office_equipment: "🖨️", machinery: "⚙️", 
+            networking: "🌐", other: "📦"
+        };
+        
+        const assetStatusColors = {
+            active: "badge-active", in_maintenance: "badge-in_maintenance", 
+            retired: "badge-retired", lost: "badge-lost", in_storage: "badge-in_storage"
+        };
+
+        const MAINTENANCE_PRIORITIES = ['low', 'medium', 'high', 'critical'];
+        const MAINTENANCE_STATUSES = ['pending', 'approved', 'in_progress', 'completed', 'cancelled'];
+        const PROCUREMENT_URGENCIES = ['low', 'medium', 'high', 'urgent'];
+        const PROCUREMENT_STATUSES = ['pending', 'manager_approved', 'admin_approved', 'rejected', 'purchased', 'delivered'];
+        const PROPERTY_TYPES = ['office', 'warehouse', 'retail', 'manufacturing', 'land', 'residential', 'data_center', 'other'];
+        const PROPERTY_OWNERSHIP = ['owned', 'leased', 'rented'];
+        const PROPERTY_STATUSES = ['active', 'vacant', 'under_renovation', 'for_sale', 'retired'];
+        const VENDOR_CATEGORIES = ['hardware', 'software', 'services', 'maintenance', 'real_estate', 'utilities', 'other'];
+        const VENDOR_STATUSES = ['active', 'inactive', 'blacklisted'];
+
+        // --- SHARED STATE OBJECT ---
+
+        const state = {
+            currentPage: 'dashboard',
+            assets: [],
+            loans: [],
+            maintenances: [],
+            procurements: [],
+            properties: [],
+            vendors: [],
+            users: [], // Mock user list
+            currentUser: { role: 'user', email: 'loading...' },
+            
+            // Modal States
+            showAssetModal: false, editingAsset: null,
+            showLoanModal: false, editingLoan: null,
+            showMaintenanceModal: false, editingMaintenance: null,
+            showProcurementModal: false, editingProcurement: null,
+            showPropertyModal: false, editingProperty: null,
+            showVendorModal: false, editingVendor: null,
+
+            // Filtering state (from AssetFilters.jsx)
+            assetFilters: { search: '', category: 'all', status: 'all' }
+        };
+
+        // --- UI UTILITY FUNCTIONS ---
+
+        /** Shows a temporary message notification. */
+        function showMessage(message, isError = false) {
+            const box = document.getElementById('message-box');
+            box.textContent = message;
+            box.style.backgroundColor = isError ? '#fee2e2' : '#d1fae5';
+            box.style.color = isError ? '#991b1b' : '#065f46';
+            box.style.border = isError ? '1px solid #fecaca' : '1px solid #a7f3d0';
+            box.style.display = 'block';
+            setTimeout(() => { box.style.display = 'none'; }, 5000);
+        }
+
+        /** Simple State Update and Render */
+        function setState(newState) {
+            Object.assign(state, newState);
+            render();
+        }
+
+        function formatCurrency(value) {
+            if (value === null || value === undefined || isNaN(value)) return '₹0';
+            return '₹' + parseFloat(value).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+        
+        function formatStatus(status) {
+            return status.replace(/_/g, ' ');
+        }
+        
+        function getFormData(formId) {
+            const form = document.getElementById(formId);
+            const data = {};
+            new FormData(form).forEach((value, key) => {
+                data[key] = value;
+            });
+            return data;
+        }
+
+
+        // --- FIREBASE & AUTH SETUP ---
+
+        async function initializeAppAndAuth() {
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        // Mock user role: first 10 characters match the app id -> Admin, first 20 characters match -> Manager
+                        let role = 'user';
+                        if (userId && appId && userId.substring(0, 10) === appId.substring(0, 10)) {
+                            role = 'admin';
+                        } else if (userId && appId && userId.substring(0, 5) === appId.substring(0, 5)) {
+                            role = 'manager';
+                        }
+                        
+                        state.currentUser = { 
+                            uid: userId, 
+                            email: user.email || `User-${userId.substring(0, 6)}@assetflow.com`, 
+                            role: role
+                        }; 
+                        isAuthReady = true;
+                        document.getElementById('user-display').textContent = `${user.email ? user.email.split('@')[0] : 'Guest'} (${role.toUpperCase()})`;
+                        await startRealtimeListeners();
+                        render();
+                    } else {
+                        if (initialAuthToken) {
+                            await signInWithCustomToken(auth, initialAuthToken);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error("Firebase initialization failed:", error);
+                showMessage("Firebase setup failed. Check console for details.", true);
+            }
+        }
+
+        /** Starts real-time data listeners for all collections */
+        async function startRealtimeListeners() {
+            if (!isAuthReady) return;
+            
+            const collections = ['assets', 'loans', 'maintenances', 'procurements', 'properties', 'vendors'];
+
+            collections.forEach(collectionName => {
+                const path = `artifacts/${appId}/users/${userId}/${collectionName}`;
+                onSnapshot(collection(db, path), (snapshot) => {
+                    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    state[collectionName] = data;
+                    console.log(`${collectionName} updated:`, data.length);
+                    render();
+                }, (error) => {
+                    console.error(`Error listening to ${collectionName}:`, error);
+                    showMessage(`Could not fetch ${collectionName}.`, true);
+                });
+            });
+
+            // Mock Users for Assignment dropdowns
+            state.users = [
+                { id: 'admin-mock', email: 'admin@org.com', full_name: 'Admin User', role: 'admin' },
+                { id: 'manager-mock', email: 'manager@org.com', full_name: 'Manager Smith', role: 'manager' },
+                { id: state.currentUser.uid, email: state.currentUser.email, full_name: state.currentUser.email.split('@')[0], role: state.currentUser.role }
+            ];
+            
+            render();
+        }
+
+        // --- CRUD LOGIC ---
+
+        async function saveDocument(collectionName, formData, existingDoc) {
+            if (!userId) return showMessage("Authentication is not ready.", true);
+            
+            try {
+                const docRef = collection(db, `artifacts/${appId}/users/${userId}/${collectionName}`);
+                const dataToSave = { 
+                    ...formData, 
+                    created_date: existingDoc?.created_date || new Date().toISOString(),
+                    created_by: existingDoc?.created_by || state.currentUser.email
+                };
+                
+                // Convert numeric fields to numbers where necessary
+                if (collectionName === 'assets') {
+                    dataToSave.purchase_value = parseFloat(dataToSave.purchase_value || 0);
+                    dataToSave.current_value = parseFloat(dataToSave.current_value || 0);
+                } else if (collectionName === 'properties') {
+                    dataToSave.size_sqft = parseFloat(dataToSave.size_sqft || 0);
+                    dataToSave.purchase_value = parseFloat(dataToSave.purchase_value || 0);
+                    dataToSave.current_value = parseFloat(dataToSave.current_value || 0);
+                    dataToSave.monthly_cost = parseFloat(dataToSave.monthly_cost || 0);
+                } else if (collectionName === 'vendors') {
+                    dataToSave.rating = parseFloat(dataToSave.rating || 3);
+                } else if (collectionName === 'procurements') {
+                    dataToSave.estimated_cost = parseFloat(dataToSave.estimated_cost || 0);
+                    dataToSave.quantity = parseInt(dataToSave.quantity || 1);
+                    dataToSave.total_cost = dataToSave.estimated_cost * dataToSave.quantity;
+                }
+                
+                if (existingDoc && existingDoc.id) {
+                    await updateDoc(doc(db, docRef.path, existingDoc.id), dataToSave);
+                    showMessage(`${collectionName.slice(0, -1)} updated successfully!`);
+                } else {
+                    await addDoc(docRef, dataToSave);
+                    showMessage(`New ${collectionName.slice(0, -1)} added successfully!`);
+                }
+
+                // Close the appropriate modal
+                setState({ 
+                    [`show${collectionName.charAt(0).toUpperCase() + collectionName.slice(1, -1)}Modal`]: false, 
+                    [`editing${collectionName.charAt(0).toUpperCase() + collectionName.slice(1, -1)}`]: null
+                });
+
+            } catch (error) {
+                console.error(`Error saving ${collectionName.slice(0, -1)}:`, error);
+                showMessage(`Failed to save ${collectionName.slice(0, -1)}: ${error.message}`, true);
+            }
+        }
+
+        async function deleteDocument(collectionName, docId) {
+            if (!userId) return showMessage("Authentication is not ready.", true);
+            try {
+                const path = `artifacts/${appId}/users/${userId}/${collectionName}`;
+                await deleteDoc(doc(db, path, docId));
+                showMessage(`${collectionName.slice(0, -1)} deleted successfully!`);
+                // Close the appropriate modal
+                setState({ 
+                    [`show${collectionName.charAt(0).toUpperCase() + collectionName.slice(1, -1)}Modal`]: false, 
+                    [`editing${collectionName.charAt(0).toUpperCase() + collectionName.slice(1, -1)}`]: null
+                });
+            } catch (error) {
+                console.error(`Error deleting ${collectionName.slice(0, -1)}:`, error);
+                showMessage(`Failed to delete ${collectionName.slice(0, -1)}: ${error.message}`, true);
+            }
+        }
+        
+        async function updateLoanStatus(loan, newStatus) {
+            if (!userId) return showMessage("Authentication is not ready.", true);
+            if (loan.status === newStatus) return;
+            try {
+                const loanPath = `artifacts/${appId}/users/${userId}/loans`;
+                await updateDoc(doc(db, loanPath, loan.id), { status: newStatus });
+                
+                // If returning, check if asset status should be changed back from 'in_storage' or similar
+                if (newStatus === 'returned') {
+                    // Update asset status (simple mock: change to active if it was previously in_storage)
+                    const asset = state.assets.find(a => a.id === loan.asset_id);
+                    if (asset) {
+                        const assetPath = `artifacts/${appId}/users/${userId}/assets`;
+                        await updateDoc(doc(db, assetPath, asset.id), { status: 'active' });
+                    }
+                    showMessage(`Loan marked as Returned. Asset status updated.`);
+                } else {
+                    showMessage(`Loan status updated to ${newStatus}!`);
+                }
+
+            } catch (error) {
+                console.error("Error updating loan:", error);
+                showMessage(`Failed to update loan status: ${error.message}`, true);
+            }
+        }
+        
+        async function updateMaintenanceStatus(request, newStatus) {
+            if (!userId) return showMessage("Authentication is not ready.", true);
+            try {
+                const path = `artifacts/${appId}/users/${userId}/maintenances`;
+                await updateDoc(doc(db, path, request.id), { status: newStatus });
+
+                // If approved, update asset status to 'in_maintenance'
+                if (newStatus === 'approved') {
+                    const asset = state.assets.find(a => a.id === request.asset_id);
+                    if (asset && asset.status !== 'in_maintenance') {
+                         const assetPath = `artifacts/${appId}/users/${userId}/assets`;
+                         await updateDoc(doc(db, assetPath, asset.id), { status: 'in_maintenance' });
+                         showMessage(`Maintenance approved. Asset moved to 'In Maintenance'.`);
+                    } else {
+                         showMessage(`Maintenance approved.`);
+                    }
+                }
+                
+                // If completed, update asset status back to 'active'
+                if (newStatus === 'completed') {
+                    const asset = state.assets.find(a => a.id === request.asset_id);
+                    if (asset && asset.status === 'in_maintenance') {
+                         const assetPath = `artifacts/${appId}/users/${userId}/assets`;
+                         await updateDoc(doc(db, assetPath, asset.id), { status: 'active' });
+                         showMessage(`Maintenance completed. Asset set to 'Active'.`);
+                    } else {
+                         showMessage(`Maintenance completed.`);
+                    }
+                }
+
+            } catch (error) {
+                console.error("Error updating maintenance:", error);
+                showMessage(`Failed to update maintenance status: ${error.message}`, true);
+            }
+        }
+        
+        async function updateProcurementStatus(request, newStatus) {
+            if (!userId) return showMessage("Authentication is not ready.", true);
+            try {
+                const path = `artifacts/${appId}/users/${userId}/procurements`;
+                await updateDoc(doc(db, path, request.id), { status: newStatus });
+                showMessage(`Procurement status updated to ${formatStatus(newStatus)}.`);
+            } catch (error) {
+                console.error("Error updating procurement:", error);
+                showMessage(`Failed to update procurement status: ${error.message}`, true);
+            }
+        }
+
+        // --- MODAL / FORM HELPER FUNCTIONS ---
+        
+        window.showAddModalForCurrentPage = function() {
+            switch(state.currentPage) {
+                case 'assets': showAssetForm(); break;
+                case 'loans': showLoanForm(); break;
+                case 'maintenance': showMaintenanceForm(); break;
+                case 'procurement': showProcurementForm(); break;
+                case 'properties': showPropertyForm(); break;
+                case 'vendors': showVendorForm(); break;
+                default: showAssetForm();
+            }
+        }
+
+        // --- ASSET FUNCTIONS (CRUD in saveDocument/deleteDocument) ---
+        window.showAssetForm = function(asset = null) {
+            const initialData = asset ? asset : {
+                name: "", asset_id: "", category: "computer", status: "active", purchase_date: "",
+                purchase_value: "", current_value: "", serial_number: "", manufacturer: "",
+                warranty_expiry: "", assigned_to_email: state.currentUser.email || "", 
+                owner_email: state.currentUser.email || "", location: "", notes: ""
+            };
+            setState({ showAssetModal: true, editingAsset: initialData });
+        }
+        window.handleEditAssetClick = function(assetId) {
+             const asset = state.assets.find(a => a.id === assetId);
+             if (asset) showAssetForm(asset);
+        }
+        window.deleteAsset = function(asset) {
+             deleteDocument('assets', asset.id);
+        }
+
+        // --- LOAN FUNCTIONS (CRUD in saveDocument/deleteDocument) ---
+        window.showLoanForm = function(loan = null) {
+            const initialData = loan ? loan : {
+                asset_id: "", asset_name: "", borrower_email: "", borrower_name: "",
+                loan_date: new Date().toISOString().split('T')[0], expected_return_date: "",
+                purpose: "", condition_at_loan: "good", notes: "", status: "active"
+            };
+            setState({ showLoanModal: true, editingLoan: initialData });
+        }
+        window.handleReturnLoan = function(loan) {
+            updateLoanStatus(loan, 'returned');
+        }
+        
+        // --- MAINTENANCE FUNCTIONS (CRUD in saveDocument/deleteDocument) ---
+        window.showMaintenanceForm = function(request = null) {
+            const initialData = request ? request : {
+                asset_id: "", asset_name: "", title: "", description: "", priority: "medium", 
+                status: "pending", scheduled_date: "", technician: "", notes: ""
+            };
+            setState({ showMaintenanceModal: true, editingMaintenance: initialData });
+        }
+        window.handleApproveMaintenance = function(request) {
+            updateMaintenanceStatus(request, 'approved');
+        }
+        window.handleCompleteMaintenance = function(request) {
+            updateMaintenanceStatus(request, 'completed');
+        }
+
+        // --- PROCUREMENT FUNCTIONS (CRUD in saveDocument/deleteDocument) ---
+        window.showProcurementForm = function(request = null) {
+             const initialData = request ? request : {
+                item_name: "", category: "computer", quantity: 1, estimated_cost: "", total_cost: 0,
+                justification: "", urgency: "medium", status: "pending"
+             };
+             setState({ showProcurementModal: true, editingProcurement: initialData });
+        }
+        window.handleProcurementApprove = function(request, role) {
+            const newStatus = role === 'manager' ? 'manager_approved' : 'admin_approved';
+            updateProcurementStatus(request, newStatus);
+        }
+        window.handleProcurementReject = function(request) {
+            updateProcurementStatus(request, 'rejected');
+        }
+        
+        // --- PROPERTY FUNCTIONS (CRUD in saveDocument/deleteDocument) ---
+        window.showPropertyForm = function(property = null) {
+            const initialData = property ? property : {
+                property_name: "", property_type: "office", address: "", city: "", state: "", 
+                postal_code: "", country: "India", size_sqft: "", ownership_type: "owned",
+                purchase_date: "", purchase_value: "", current_value: "", monthly_cost: "",
+                lease_expiry: "", property_manager: "", status: "active", notes: ""
+            };
+            setState({ showPropertyModal: true, editingProperty: initialData });
+        }
+        window.handleEditPropertyClick = function(propertyId) {
+             const property = state.properties.find(p => p.id === propertyId);
+             if (property) showPropertyForm(property);
+        }
+        window.deleteProperty = function(property) {
+             deleteDocument('properties', property.id);
+        }
+        
+        // --- VENDOR FUNCTIONS (CRUD in saveDocument/deleteDocument) ---
+        window.showVendorForm = function(vendor = null) {
+            const initialData = vendor ? vendor : {
+                vendor_name: "", contact_person: "", email: "", phone: "", address: "", 
+                website: "", category: "hardware", status: "active", rating: 3, 
+                contract_start: "", contract_end: "", payment_terms: "", notes: ""
+            };
+            setState({ showVendorModal: true, editingVendor: initialData });
+        }
+        window.handleEditVendorClick = function(vendorId) {
+             const vendor = state.vendors.find(v => v.id === vendorId);
+             if (vendor) showVendorForm(vendor);
+        }
+        window.deleteVendor = function(vendor) {
+             deleteDocument('vendors', vendor.id);
+        }
+
+        // --- DASHBOARD RENDERER (Unchanged from previous except for status checks) ---
+
+        function calculateStats(assets, loans) {
+            const totalAssets = assets.length;
+            const totalValue = assets.reduce((sum, a) => sum + (a.current_value || a.purchase_value || 0), 0);
+            const activeLoans = loans.filter(l => l.status === 'active').length;
+            const overdueLoans = loans.filter(l => l.status === 'active' && isPast(parseISO(l.expected_return_date || new Date().toISOString()))).length;
+            
+            return { totalAssets, totalValue, activeLoans, overdueLoans };
+        }
+
+        function renderStatsCard(stats) {
+             const maintenanceCount = state.maintenances.filter(m => m.status === 'pending' || m.status === 'approved').length;
+             const procurementPending = state.procurements.filter(p => p.status === 'pending' || p.status === 'manager_approved').length;
+
+            const cards = [
+                { title: 'Total Assets', value: stats.totalAssets, icon: 'package', color: '#4f46e5', delay: 0 },
+                { title: 'Total Value', value: formatCurrency(stats.totalValue), icon: 'dollar-sign', color: '#10b981', delay: 0.1 },
+                { title: 'Active Loans', value: stats.activeLoans, icon: 'repeat', color: '#3b82f6', delay: 0.2, subtitle: stats.overdueLoans > 0 ? `${stats.overdueLoans} Overdue` : '' },
+                { title: 'Open Maintenance', value: maintenanceCount, icon: 'wrench', color: '#f59e0b', delay: 0.3 },
+                { title: 'Pending Procurement', value: procurementPending, icon: 'shopping-cart', color: '#ec4899', delay: 0.4 },
+                { title: 'Total Properties', value: state.properties.length, icon: 'building-2', color: '#8b5cf6', delay: 0.5 },
+            ];
+
+            return cards.map(card => `
+                <div class="card stat-card" style="border-left: 5px solid ${card.color};">
+                    <div class="p-6">
+                        <div class="flex-row justify-between">
+                            <div class="flex-col" style="align-items: flex-start; gap: 0.5rem;">
+                                <p class="stat-title">${card.title}</p>
+                                <p class="stat-value" style="color: ${card.color};">${card.value}</p>
+                                ${card.subtitle ? `<p class="stat-subtitle" style="color: var(--color-danger); font-weight: 500;">${card.subtitle}</p>` : ''}
+                            </div>
+                            <div class="stat-icon-container" style="background-color: ${card.color}10;">
+                                <span data-lucide="${card.icon}" class="stat-icon" style="color: ${card.color};"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        let categoryChartInstance = null;
+        function renderCategoryChart(assets) { /* ... implementation details hidden for brevity ... */
+            const counts = assets.reduce((acc, asset) => {
+                acc[asset.category] = (acc[asset.category] || 0) + 1;
+                return acc;
+            }, {});
+
+            const data = Object.entries(counts).map(([name, value]) => ({
+                name: ASSET_CATEGORIES[name] || formatStatus(name), value: value
+            }));
+            
+            const chartHtml = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Assets by Category</h3>
+                    </div>
+                    <div class="card-content pt-6" style="height: 300px;">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            `;
+
+            setTimeout(() => {
+                const ctx = document.getElementById('categoryChart');
+                if (!ctx) return;
+
+                if (categoryChartInstance) { categoryChartInstance.destroy(); }
+
+                const chartData = {
+                    labels: data.map(d => d.name),
+                    datasets: [{
+                        data: data.map(d => d.value),
+                        backgroundColor: ['#6366F1', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#3B82F6', '#EAB308', '#F43F5E'],
+                        hoverOffset: 4
+                    }]
+                };
+
+                categoryChartInstance = new Chart(ctx, {
+                    type: 'doughnut', data: chartData,
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' }, tooltip: { callbacks: {
+                                    label: function(context) { let label = context.label || ''; if (label) { label += ': '; } label += context.parsed;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((context.parsed / total) * 100).toFixed(1) + '%';
+                                        return label + ' (' + percentage + ')';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }, 0);
+            return chartHtml;
+        }
+
+        function renderRecentAssets(assets) { /* ... implementation details hidden for brevity ... */
+            const recentAssets = assets.slice(0, 5).sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+
+            return `
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Recently Added Assets</h3>
+                    </div>
+                    <div class="p-0">
+                        <div style="border-top: 1px solid var(--color-border);">
+                            ${recentAssets.length === 0 ? `<div class="p-4 text-center text-slate-500">No recent assets added.</div>` : recentAssets.map(asset => `
+                                <div class="recent-item" onclick="handleEditAssetClick('${asset.id}')">
+                                    <div class="flex-row justify-between" style="align-items: flex-start;">
+                                        <div style="flex-grow: 1;">
+                                            <h4 style="margin-bottom: 0.25rem;">${asset.name}</h4>
+                                            <p>${ASSET_CATEGORIES[asset.category] || 'Other'}</p>
+                                            <p class="asset-date">Added ${format(new Date(asset.created_date || new Date()), "MMM d, yyyy")}</p>
+                                        </div>
+                                        <div class="badge ${assetStatusColors[asset.status] || 'badge-retired'}">
+                                            ${formatStatus(asset.status)}
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderOnboarding() { /* ... implementation details hidden for brevity ... */
+            return `
+                <div class="onboarding">
+                    <div class="onboarding-icon-wrapper"><span>👋</span></div>
+                    <h2>Welcome to AssetFlow!</h2>
+                    <p>You're all set up. Let's get started by adding your first asset to your inventory.</p>
+                    <button class="btn btn-onboarding" onclick="showAssetForm()">
+                        <span data-lucide="plus" style="width: 20px; height: 20px; margin-right: 8px;"></span>
+                        Add Your First Asset
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderDashboard() {
+            const stats = calculateStats(state.assets, state.loans);
+            let html = '';
+
+            if (state.assets.length === 0) {
+                html = renderOnboarding();
+            } else {
+                html = `
+                    <div class="dashboard-grid">
+                        <div class="dashboard-main" style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                            ${renderStatsCard(stats)}
+                        </div>
+                        <div class="dashboard-secondary" style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+                            ${renderCategoryChart(state.assets)}
+                            ${renderRecentAssets(state.assets)}
+                        </div>
+                    </div>
+                `;
+            }
+
+            return html;
+        }
+        
+        // --- ASSETS LIST RENDERER (Including AssetFilters.jsx and AssetCard.jsx logic) ---
+
+        function applyAssetFilters(assets, filters) {
+            let filtered = assets;
+
+            // Category filter
+            if (filters.category !== 'all') {
+                filtered = filtered.filter(a => a.category === filters.category);
+            }
+
+            // Status filter
+            if (filters.status !== 'all') {
+                filtered = filtered.filter(a => a.status === filters.status);
+            }
+
+            // Search filter
+            if (filters.search) {
+                const searchLower = filters.search.toLowerCase();
+                filtered = filtered.filter(a => 
+                    a.name.toLowerCase().includes(searchLower) || 
+                    a.asset_id.toLowerCase().includes(searchLower) ||
+                    a.serial_number.toLowerCase().includes(searchLower) ||
+                    a.assigned_to_email.toLowerCase().includes(searchLower)
+                );
+            }
+
+            return filtered;
+        }
+        
+        function renderAssetCard(asset) {
+            const icon = categoryIcons[asset.category] || '📦';
+            const value = formatCurrency(asset.current_value || asset.purchase_value);
+            const statusBadge = assetStatusColors[asset.status] || 'badge-retired';
+            const assignedTo = asset.assigned_to_email ? asset.assigned_to_email.split('@')[0] : 'Unassigned';
+
+            return `
+                <div class="card card-list-item flex-col h-full">
+                    <div class="p-6 flex-grow">
+                        <div class="flex-row justify-between mb-4" style="align-items: flex-start;">
+                            <div class="flex-row gap-3">
+                                <div class="asset-card-icon">${icon}</div>
+                                <div class="flex-col" style="align-items: flex-start;">
+                                    <h3 style="font-weight: 600; font-size: 1.125rem; margin: 0;">${asset.name}</h3>
+                                    <p style="font-size: 0.875rem; color: var(--color-text-light); margin: 0;">${ASSET_CATEGORIES[asset.category] || formatStatus(asset.category)}</p>
+                                </div>
+                            </div>
+                            <!-- Dropdown Menu Mock -->
+                             <button class="btn btn-icon" onclick="event.stopPropagation(); handleEditAssetClick('${asset.id}')">
+                                 <span data-lucide="pencil" style="width: 16px; height: 16px;"></span>
+                             </button>
+                        </div>
+        
+                        <div class="space-y-3">
+                            <div class="asset-card-prop">
+                                <span>Status</span>
+                                <div class="badge ${statusBadge}">${formatStatus(asset.status)}</div>
+                            </div>
+
+                            <div class="asset-card-prop">
+                                <span><span data-lucide="dollar-sign" style="width: 14px; height: 14px; margin-right: 4px; display: inline-block;"></span>Value</span>
+                                <span class="asset-card-prop-value">${value}</span>
+                            </div>
+
+                            ${asset.location ? `<div class="asset-card-prop">
+                                <span><span data-lucide="map-pin" style="width: 14px; height: 14px; margin-right: 4px; display: inline-block;"></span>Location</span>
+                                <span class="asset-card-prop-value">${asset.location}</span>
+                            </div>` : ''}
+
+                            ${asset.purchase_date ? `<div class="asset-card-prop">
+                                <span><span data-lucide="calendar" style="width: 14px; height: 14px; margin-right: 4px; display: inline-block;"></span>Purchased</span>
+                                <span class="asset-card-prop-value">${format(parseISO(asset.purchase_date), "MMM yyyy")}</span>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                    
+                    <div class="asset-card-footer">
+                        <span data-lucide="user" style="width: 16px; height: 16px; color: var(--color-text-light);"></span>
+                        <p class="text-sm" style="color: var(--color-text-dark);">${assignedTo}</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function handleAssetFilterChange(e) {
+            const { name, value } = e.target;
+            const newFilters = { ...state.assetFilters, [name]: value };
+            setState({ assetFilters: newFilters });
+        }
+        
+        function renderAssetFilters() {
+            const filters = state.assetFilters;
+            
+            return `
+                <div class="flex-col gap-4 mb-6" style="display: flex; flex-direction: column;">
+                    <div class="relative w-full">
+                        <span data-lucide="search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94a3b8;"></span>
+                        <input
+                            type="text"
+                            placeholder="Search assets..."
+                            class="input"
+                            name="search"
+                            value="${filters.search}"
+                            oninput="handleAssetFilterChange(event)"
+                            style="padding-left: 2.5rem;"
+                        />
+                    </div>
+                    
+                    <div class="form-grid" style="gap: 1rem;">
+                        <select class="select-trigger input" name="category" onchange="handleAssetFilterChange(event)">
+                            <option value="all">All Categories</option>
+                            ${CATEGORIES.map(c => `<option value="${c.value}" ${filters.category === c.value ? 'selected' : ''}>${c.label}</option>`).join('')}
+                        </select>
+                        
+                        <select class="select-trigger input" name="status" onchange="handleAssetFilterChange(event)">
+                            <option value="all">All Statuses</option>
+                            ${ASSET_STATUSES.map(s => `<option value="${s.value}" ${filters.status === s.value ? 'selected' : ''}>${s.label}</option>`).join('')}
+                        </select>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAssetsPage() {
+            const filteredAssets = applyAssetFilters(state.assets, state.assetFilters);
+            
+            return `
+                <h2 class="section-title">Asset Inventory (${state.assets.length})</h2>
+                ${renderAssetFilters()}
+                
+                <div class="asset-list-grid">
+                    ${filteredAssets.length === 0 
+                        ? `<p class="p-6 text-center" style="grid-column: 1 / -1; color: var(--color-text-light);">No assets match the current filters.</p>` 
+                        : filteredAssets.map(renderAssetCard).join('')}
+                </div>
+            `;
+        }
+        
+        // --- LOANS LIST RENDERER (Including LoanCard.jsx logic) ---
+        
+        function renderLoanCard(loan) {
+            const isOverdue = loan.status === 'active' && loan.expected_return_date && isPast(parseISO(loan.expected_return_date));
+            const status = isOverdue ? 'overdue' : loan.status;
+            const statusBadgeClass = loanStatusColors[`loan-${status}`] || loanStatusColors['loan-active'];
+            const canReturn = loan.status === 'active' && (state.currentUser.role === 'admin' || state.currentUser.role === 'manager');
+            
+            return `
+                <div class="card card-list-item flex-col h-full">
+                    <div class="p-6">
+                        <div class="flex-row justify-between mb-4" style="align-items: flex-start;">
+                            <div class="flex-row gap-3">
+                                <div class="asset-card-icon" style="background-color: #f0f4ff;">
+                                    <span data-lucide="package" style="width: 24px; height: 24px; color: var(--color-primary);"></span>
+                                </div>
+                                <div class="flex-col" style="align-items: flex-start;">
+                                    <h3 style="font-weight: 600; font-size: 1.125rem; margin: 0;">${loan.asset_name}</h3>
+                                    <p style="font-size: 0.875rem; color: var(--color-text-light); margin: 0;">Loaned to ${loan.borrower_name}</p>
+                                </div>
+                            </div>
+                            <div class="badge ${statusBadgeClass}">${status.toUpperCase()}</div>
+                        </div>
+
+                        <div class="space-y-2 mb-4" style="font-size: 0.875rem; color: var(--color-text-light);">
+                            <div class="flex-row gap-2" style="align-items: flex-start;">
+                                <span data-lucide="user" style="width: 16px; height: 16px; flex-shrink: 0;"></span>
+                                <span>Borrower: <span style="color: var(--color-text-dark);">${loan.borrower_email}</span></span>
+                            </div>
+                            <div class="flex-row gap-2" style="align-items: flex-start;">
+                                <span data-lucide="calendar" style="width: 16px; height: 16px; flex-shrink: 0;"></span>
+                                <span>Borrowed: <span style="color: var(--color-text-dark);">${format(parseISO(loan.loan_date), "MMM d, yyyy")}</span></span>
+                            </div>
+                            <div class="flex-row gap-2" style="align-items: flex-start;">
+                                <span data-lucide="calendar-check" style="width: 16px; height: 16px; flex-shrink: 0;"></span>
+                                <span>Expected Return: <span style="color: ${isOverdue ? 'var(--color-danger)' : 'var(--color-text-dark)'}; font-weight: 500;">${format(parseISO(loan.expected_return_date), "MMM d, yyyy")}</span></span>
+                            </div>
+                        </div>
+
+                        ${canReturn ? `
+                            <button class="btn btn-sm w-full" style="background-color: var(--color-success); color: white; margin-top: 1rem;" 
+                                onclick="handleReturnLoan({id: '${loan.id}', asset_id: '${loan.asset_id}', status: 'active'})">
+                                <span data-lucide="check-circle" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                Mark as Returned
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderLoansPage() {
+            return `
+                <h2 class="section-title">Asset Loans (${state.loans.length})</h2>
+                <div class="asset-list-grid">
+                    ${state.loans.length === 0 
+                        ? `<p class="p-6 text-center" style="grid-column: 1 / -1; color: var(--color-text-light);">No active loan records found.</p>` 
+                        : state.loans.map(renderLoanCard).join('')}
+                </div>
+            `;
+        }
+        
+        // --- MAINTENANCE LIST RENDERER (Including MaintenanceCard.jsx logic) ---
+
+        function renderMaintenanceCard(request) {
+            const statusBadgeClass = `badge-maintenance-${request.status}`;
+            const priorityBadgeClass = `badge-priority-${request.priority}`;
+            const canApprove = request.status === 'pending' && (state.currentUser.role === 'admin' || state.currentUser.role === 'manager');
+            const canComplete = request.status === 'approved' && (state.currentUser.role === 'admin' || state.currentUser.role === 'manager');
+
+            return `
+                <div class="card card-list-item flex-col h-full" style="margin-bottom: 20px;">
+                    <div class="p-6">
+                        <div class="flex-row justify-between mb-2" style="align-items: flex-start;">
+                            <div class="flex-col" style="align-items: flex-start;">
+                                <div class="flex-row gap-2 mb-1" style="align-items: center;">
+                                    <h3 style="font-weight: 600; font-size: 1.125rem; margin: 0;">${request.title}</h3>
+                                    <div class="badge ${priorityBadgeClass}">${request.priority.toUpperCase()}</div>
+                                </div>
+                                <p style="font-size: 0.9rem; color: var(--color-text-dark); margin: 0;">Asset: ${request.asset_name || 'N/A'}</p>
+                                <p style="font-size: 0.875rem; color: var(--color-text-light); margin: 0.5rem 0 0;">${request.description.substring(0, 100)}${request.description.length > 100 ? '...' : ''}</p>
+                            </div>
+                            <div class="badge ${statusBadgeClass}">${formatStatus(request.status)}</div>
+                        </div>
+
+                        <div class="flex-row gap-6 mt-4" style="font-size: 0.8rem; color: var(--color-text-light);">
+                            <span>Requested: ${format(parseISO(request.created_date), "MMM d, yyyy")}</span>
+                            ${request.scheduled_date ? `<span>Scheduled: ${format(parseISO(request.scheduled_date), "MMM d, yyyy")}</span>` : ''}
+                            <span>By: ${request.created_by.split('@')[0]}</span>
+                        </div>
+
+                        <div class="flex-row gap-2 mt-4 justify-end">
+                            ${canApprove ? `
+                                <button class="btn btn-sm" style="background-color: var(--color-success); color: white;" 
+                                    onclick="handleApproveMaintenance({id: '${request.id}', asset_id: '${request.asset_id}', status: 'pending'})">
+                                    <span data-lucide="check-circle" style="width: 14px; height: 14px; margin-right: 4px;"></span>
+                                    Approve
+                                </button>
+                            ` : ''}
+                             ${canComplete ? `
+                                <button class="btn btn-sm" style="background-color: var(--color-primary); color: white;" 
+                                    onclick="handleCompleteMaintenance({id: '${request.id}', asset_id: '${request.asset_id}', status: 'approved'})">
+                                    <span data-lucide="check" style="width: 14px; height: 14px; margin-right: 4px;"></span>
+                                    Complete
+                                </button>
+                            ` : ''}
+                            <button class="btn btn-sm btn-outline" onclick="showMaintenanceForm(state.maintenances.find(m => m.id === '${request.id}'))">
+                                <span data-lucide="pencil" style="width: 14px; height: 14px; margin-right: 4px;"></span>
+                                Edit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderMaintenancePage() {
+            return `
+                <h2 class="section-title">Maintenance Requests (${state.maintenances.length})</h2>
+                <div>
+                    ${state.maintenances.length === 0 
+                        ? `<p class="p-6 text-center" style="color: var(--color-text-light);">No maintenance requests found.</p>` 
+                        : state.maintenances.map(renderMaintenanceCard).join('')}
+                </div>
+            `;
+        }
+        
+        // --- PROCUREMENT LIST RENDERER (Including ProcurementCard.jsx logic) ---
+
+        function renderProcurementCard(request) {
+            const statusBadgeClass = `badge-procurement-${request.status}`;
+            const urgencyBadgeClass = `badge-urgency-${request.urgency}`;
+            const canManagerApprove = state.currentUser.role === 'manager' && request.status === 'pending';
+            const canAdminApprove = state.currentUser.role === 'admin' && request.status === 'manager_approved';
+
+            return `
+                <div class="card card-list-item flex-col h-full" style="margin-bottom: 20px;">
+                    <div class="p-6">
+                        <div class="flex-row justify-between mb-4" style="align-items: flex-start;">
+                            <div class="flex-col" style="align-items: flex-start; flex-grow: 1;">
+                                <div class="flex-row gap-2 mb-1" style="align-items: center;">
+                                    <h3 style="font-weight: 600; font-size: 1.125rem; margin: 0;">${request.item_name}</h3>
+                                    <div class="badge ${urgencyBadgeClass}">${request.urgency.toUpperCase()}</div>
+                                </div>
+                                <p style="font-size: 0.9rem; color: var(--color-text-dark); margin: 0;">
+                                    ${request.quantity} x ${formatCurrency(request.estimated_cost)} = 
+                                    <span style="font-weight: 600;">${formatCurrency(request.total_cost)}</span>
+                                </p>
+                                <p style="font-size: 0.875rem; color: var(--color-text-light); margin-top: 0.5rem;">${request.justification.substring(0, 100)}${request.justification.length > 100 ? '...' : ''}</p>
+                            </div>
+                            <div class="badge ${statusBadgeClass}">${formatStatus(request.status)}</div>
+                        </div>
+
+                        <div class="flex-row justify-between mt-4" style="font-size: 0.8rem; color: var(--color-text-light);">
+                            <div class="flex-row gap-4">
+                                <span>Requested: ${format(parseISO(request.created_date), "MMM d, yyyy")}</span>
+                                <span>By: ${request.created_by.split('@')[0]}</span>
+                            </div>
+                            
+                            <div class="flex-row gap-2">
+                                ${canManagerApprove ? `
+                                    <button class="btn btn-sm" style="background-color: var(--color-success); color: white;" 
+                                        onclick="handleProcurementApprove({id: '${request.id}'}, 'manager')">
+                                        <span data-lucide="check-circle" style="width: 14px; height: 14px; margin-right: 4px;"></span>
+                                        Mgr. Approve
+                                    </button>
+                                    <button class="btn btn-sm btn-destructive" 
+                                        onclick="handleProcurementReject({id: '${request.id}'})">
+                                        <span data-lucide="x-circle" style="width: 14px; height: 14px; margin-right: 4px;"></span>
+                                        Reject
+                                    </button>
+                                ` : ''}
+                                ${canAdminApprove ? `
+                                    <button class="btn btn-sm" style="background-color: var(--color-success); color: white;" 
+                                        onclick="handleProcurementApprove({id: '${request.id}'}, 'admin')">
+                                        <span data-lucide="check-circle" style="width: 14px; height: 14px; margin-right: 4px;"></span>
+                                        Adm. Approve
+                                    </button>
+                                    <button class="btn btn-sm btn-destructive" 
+                                        onclick="handleProcurementReject({id: '${request.id}'})">
+                                        <span data-lucide="x-circle" style="width: 14px; height: 14px; margin-right: 4px;"></span>
+                                        Reject
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderProcurementPage() {
+            return `
+                <h2 class="section-title">Procurement Requests (${state.procurements.length})</h2>
+                <div>
+                    ${state.procurements.length === 0 
+                        ? `<p class="p-6 text-center" style="color: var(--color-text-light);">No procurement requests found.</p>` 
+                        : state.procurements.map(renderProcurementCard).join('')}
+                </div>
+            `;
+        }
+
+        // --- PROPERTY LIST RENDERER (Including PropertyCard.jsx logic) ---
+        
+        function renderPropertyCard(property) {
+            const statusBadgeClass = `badge-property-${property.status}`;
+            const value = formatCurrency(property.current_value || property.purchase_value);
+
+            return `
+                <div class="card card-list-item flex-col h-full">
+                    <div class="p-6">
+                        <div class="flex-row justify-between mb-4" style="align-items: flex-start;">
+                            <div class="flex-row gap-3">
+                                <div class="asset-card-icon" style="background-color: #f0f4ff;">
+                                    <span data-lucide="building-2" style="width: 24px; height: 24px; color: var(--color-primary);"></span>
+                                </div>
+                                <div class="flex-col" style="align-items: flex-start;">
+                                    <h3 style="font-weight: 600; font-size: 1.125rem; margin: 0;">${property.property_name}</h3>
+                                    <p style="font-size: 0.875rem; color: var(--color-text-light); margin: 0;">${formatStatus(property.property_type)} (${property.ownership_type})</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-icon" onclick="event.stopPropagation(); showPropertyForm(state.properties.find(p => p.id === '${property.id}'))">
+                                 <span data-lucide="pencil" style="width: 16px; height: 16px;"></span>
+                            </button>
+                        </div>
+        
+                        <div class="space-y-2 mb-4" style="font-size: 0.875rem; color: var(--color-text-light);">
+                            <div class="flex-row gap-2" style="align-items: flex-start;">
+                                <span data-lucide="map-pin" style="width: 16px; height: 16px; flex-shrink: 0;"></span>
+                                <span style="color: var(--color-text-dark);">${property.address}, ${property.city}</span>
+                            </div>
+                            <div class="flex-row gap-2" style="align-items: flex-start;">
+                                <span data-lucide="dollar-sign" style="width: 16px; height: 16px; flex-shrink: 0;"></span>
+                                <span>Value: <span style="color: var(--color-text-dark); font-weight: 500;">${value}</span></span>
+                            </div>
+                        </div>
+
+                        <div class="flex-row justify-between">
+                            <div class="badge ${statusBadgeClass}">${formatStatus(property.status)}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPropertiesPage() {
+            return `
+                <h2 class="section-title">Property Assets (${state.properties.length})</h2>
+                <div class="asset-list-grid">
+                    ${state.properties.length === 0 
+                        ? `<p class="p-6 text-center" style="grid-column: 1 / -1; color: var(--color-text-light);">No property records found.</p>` 
+                        : state.properties.map(renderPropertyCard).join('')}
+                </div>
+            `;
+        }
+        
+        // --- VENDOR LIST RENDERER (Including VendorCard.jsx logic) ---
+
+        function renderVendorCard(vendor) {
+            const statusBadgeClass = `badge-vendor-${vendor.status}`;
+            const ratingDisplay = vendor.rating ? `${parseFloat(vendor.rating).toFixed(1)} / 5.0` : 'N/A';
+            
+            return `
+                <div class="card card-list-item flex-col h-full">
+                    <div class="p-6">
+                        <div class="flex-row justify-between mb-4" style="align-items: flex-start;">
+                            <div class="flex-row gap-3">
+                                <div class="asset-card-icon" style="background-color: #f0f4ff;">
+                                    <span data-lucide="truck" style="width: 24px; height: 24px; color: var(--color-primary);"></span>
+                                </div>
+                                <div class="flex-col" style="align-items: flex-start;">
+                                    <h3 style="font-weight: 600; font-size: 1.125rem; margin: 0;">${vendor.vendor_name}</h3>
+                                    <p style="font-size: 0.875rem; color: var(--color-text-light); margin: 0;">${formatStatus(vendor.category)}</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-icon" onclick="event.stopPropagation(); showVendorForm(state.vendors.find(v => v.id === '${vendor.id}'))">
+                                 <span data-lucide="pencil" style="width: 16px; height: 16px;"></span>
+                            </button>
+                        </div>
+        
+                        <div class="space-y-2 mb-4" style="font-size: 0.875rem; color: var(--color-text-light);">
+                            <div class="flex-row gap-2" style="align-items: flex-start;">
+                                <span data-lucide="mail" style="width: 16px; height: 16px; flex-shrink: 0;"></span>
+                                <span style="color: var(--color-text-dark);">${vendor.email}</span>
+                            </div>
+                            ${vendor.phone ? `<div class="flex-row gap-2" style="align-items: flex-start;">
+                                <span data-lucide="phone" style="width: 16px; height: 16px; flex-shrink: 0;"></span>
+                                <span style="color: var(--color-text-dark);">${vendor.phone}</span>
+                            </div>` : ''}
+                            <div class="flex-row gap-2" style="align-items: flex-start; color: #f59e0b; font-weight: 500;">
+                                <span data-lucide="star" style="width: 16px; height: 16px; flex-shrink: 0; fill: currentColor;"></span>
+                                <span>Rating: ${ratingDisplay}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex-row justify-between">
+                            <div class="badge ${statusBadgeClass}">${formatStatus(vendor.status)}</div>
+                            <p style="font-size: 0.8rem; color: var(--color-text-light);">${vendor.contact_person || ''}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderVendorsPage() {
+            return `
+                <h2 class="section-title">Vendor Management (${state.vendors.length})</h2>
+                <div class="asset-list-grid">
+                    ${state.vendors.length === 0 
+                        ? `<p class="p-6 text-center" style="grid-column: 1 / -1; color: var(--color-text-light);">No vendor records found.</p>` 
+                        : state.vendors.map(renderVendorCard).join('')}
+                </div>
+            `;
+        }
+        
+        // --- MODAL RENDERERS (All Forms) ---
+        
+        function renderAssetFormModal() { /* Implementation of AssetForm.jsx */
+            if (!state.showAssetModal) return '';
+            const asset = state.editingAsset;
+            const isEdit = !!asset.id;
+            
+            return `
+                <div class="modal-overlay" onclick="setState({ showAssetModal: false, editingAsset: null })">
+                    <div class="modal-content" onclick="event.stopPropagation()">
+                        <form id="asset-form">
+                            <div class="card-header">
+                                <h3 class="card-title">${isEdit ? 'Edit Asset' : 'Add New Asset'}</h3>
+                                <button type="button" class="btn btn-icon" onclick="setState({ showAssetModal: false, editingAsset: null })">
+                                    <span data-lucide="x" style="width: 20px; height: 20px;"></span>
+                                </button>
+                            </div>
+                            <div class="card-content" style="padding: 1.5rem 1.5rem 0;">
+                                <div class="form-grid">
+                                    <div class="flex-col">
+                                        <label for="name" class="label">Asset Name *</label>
+                                        <input id="name" name="name" class="input" value="${asset.name || ''}" placeholder="e.g., MacBook Pro 16" required />
+                                    </div>
+                                    <div class="flex-col">
+                                        <label for="asset_id" class="label">Asset ID</label>
+                                        <input id="asset_id" name="asset_id" class="input" value="${asset.asset_id || ''}" placeholder="e.g., AST-2024-001" />
+                                    </div>
+                                    
+                                    <div class="flex-col">
+                                        <label for="category" class="label">Category *</label>
+                                        <select id="category" name="category" class="select-trigger input">
+                                            ${CATEGORIES.map(c => `<option value="${c.value}" ${asset.category === c.value ? 'selected' : ''}>${c.label}</option>`).join('')}
+                                        </select>
+                                    </div>
+                                    <div class="flex-col">
+                                        <label for="status" class="label">Status *</label>
+                                        <select id="status" name="status" class="select-trigger input">
+                                            ${ASSET_STATUSES.map(s => `<option value="${s.value}" ${asset.status === s.value ? 'selected' : ''}>${s.label}</option>`).join('')}
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="flex-col">
+                                        <label for="manufacturer" class="label">Manufacturer/Brand</label>
+                                        <input id="manufacturer" name="manufacturer" class="input" value="${asset.manufacturer || ''}" placeholder="e.g., Apple, Dell" />
+                                    </div>
+                                    <div class="flex-col">
+                                        <label for="serial_number" class="label">Serial Number</label>
+                                        <input id="serial_number" name="serial_number" class="input" value="${asset.serial_number || ''}" placeholder="e.g., SN123456789" />
+                                    </div>
+                                    
+                                    <div class="flex-col">
+                                        <label for="purchase_date" class="label">Purchase Date</label>
+                                        <input id="purchase_date" name="purchase_date" class="input" type="date" value="${asset.purchase_date || ''}" />
+                                    </div>
+                                    <div class="flex-col">
+                                        <label for="warranty_expiry" class="label">Warranty Expiry</label>
+                                        <input id="warranty_expiry" name="warranty_expiry" class="input" type="date" value="${asset.warranty_expiry || ''}" />
+                                    </div>
+                                    
+                                    <div class="flex-col">
+                                        <label for="purchase_value" class="label">Purchase Value (₹)</label>
+                                        <input id="purchase_value" name="purchase_value" class="input" type="number" step="0.01" value="${asset.purchase_value || ''}" placeholder="0.00" />
+                                    </div>
+                                    <div class="flex-col">
+                                        <label for="current_value" class="label">Current Value (₹)</label>
+                                        <input id="current_value" name="current_value" class="input" type="number" step="0.01" value="${asset.current_value || ''}" placeholder="0.00" />
+                                    </div>
+                                    
+                                    <div class="flex-col">
+                                        <label for="assigned_to_email" class="label">Assigned To</label>
+                                        <select id="assigned_to_email" name="assigned_to_email" class="select-trigger input" ${state.currentUser.role !== 'admin' ? 'disabled' : ''}>
+                                            ${state.users.map(u => `<option value="${u.email}" ${asset.assigned_to_email === u.email ? 'selected' : ''}>${u.full_name} (${u.email})</option>`).join('')}
+                                        </select>
+                                        ${state.currentUser.role !== 'admin' ? '<p style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.25rem;">Only admins/managers can change assignment.</p>' : ''}
+                                    </div>
+                                    <div class="flex-col">
+                                        <label for="location" class="label">Location</label>
+                                        <input id="location" name="location" class="input" value="${asset.location || ''}" placeholder="Office, warehouse, etc." />
+                                    </div>
+                                    
+                                    <div class="flex-col" style="grid-column: 1 / -1;">
+                                        <label for="notes" class="label">Notes</label>
+                                        <textarea id="notes" name="notes" class="textarea" rows="3" placeholder="Additional information about this asset">${asset.notes || ''}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer flex-row justify-between">
+                                ${isEdit ? `
+                                    <button type="button" class="btn btn-destructive" onclick="deleteAsset(state.editingAsset)">
+                                        <span data-lucide="trash-2" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                        Delete
+                                    </button>
+                                ` : '<div></div>'}
+                                <div class="flex-row gap-4">
+                                    <button type="button" class="btn btn-outline" onclick="setState({ showAssetModal: false, editingAsset: null })">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" onclick="event.preventDefault(); saveDocument('assets', getFormData('asset-form'), state.editingAsset)">
+                                        <span data-lucide="save" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                        ${isEdit ? 'Save Changes' : 'Save Asset'}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderLoanFormModal() { /* Implementation of LoanForm.jsx */
+             if (!state.showLoanModal) return '';
+             const loan = state.editingLoan;
+             const isEdit = !!loan.id;
+
+             return `
+                 <div class="modal-overlay" onclick="setState({ showLoanModal: false, editingLoan: null })">
+                     <div class="modal-content" style="max-width: 500px;" onclick="event.stopPropagation()">
+                         <form id="loan-form">
+                             <div class="card-header">
+                                 <h3 class="card-title">${isEdit ? 'Edit Loan' : 'New Asset Loan'}</h3>
+                                 <button type="button" class="btn btn-icon" onclick="setState({ showLoanModal: false, editingLoan: null })">
+                                     <span data-lucide="x" style="width: 20px; height: 20px;"></span>
+                                 </button>
+                             </div>
+                             <div class="card-content space-y-4">
+                                 <div class="flex-col">
+                                     <label for="asset_id" class="label">Select Asset *</label>
+                                     <select id="asset_id" name="asset_id" class="select-trigger input" required onchange="
+                                        const asset = state.assets.find(a => a.id === this.value);
+                                        state.editingLoan.asset_name = asset ? asset.name : '';
+                                     ">
+                                         <option value="">Choose an asset</option>
+                                         ${state.assets.filter(a => a.status === 'active').map(asset => `
+                                             <option value="${asset.id}" ${loan.asset_id === asset.id ? 'selected' : ''}>
+                                                 ${asset.name} (${asset.asset_id})
+                                             </option>
+                                         `).join('')}
+                                     </select>
+                                     <input type="hidden" name="asset_name" value="${loan.asset_name || ''}" />
+                                 </div>
+
+                                 <div class="form-grid" style="gap: 1rem;">
+                                    <div class="flex-col">
+                                         <label for="borrower_name" class="label">Borrower Name *</label>
+                                         <input id="borrower_name" name="borrower_name" class="input" value="${loan.borrower_name || ''}" required />
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="borrower_email" class="label">Borrower Email *</label>
+                                         <input id="borrower_email" name="borrower_email" class="input" type="email" value="${loan.borrower_email || ''}" required />
+                                     </div>
+                                </div>
+                                
+                                 <div class="form-grid" style="gap: 1rem;">
+                                     <div class="flex-col">
+                                         <label for="loan_date" class="label">Loan Date *</label>
+                                         <input id="loan_date" name="loan_date" class="input" type="date" value="${loan.loan_date || ''}" required />
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="expected_return_date" class="label">Expected Return Date *</label>
+                                         <input id="expected_return_date" name="expected_return_date" class="input" type="date" value="${loan.expected_return_date || ''}" required />
+                                     </div>
+                                 </div>
+
+                                 <div class="flex-col">
+                                     <label for="purpose" class="label">Purpose *</label>
+                                     <input id="purpose" name="purpose" class="input" value="${loan.purpose || ''}" placeholder="Reason for borrowing this asset" required />
+                                 </div>
+
+                                 <div class="flex-col">
+                                     <label for="condition_at_loan" class="label">Condition at Loan</label>
+                                     <select id="condition_at_loan" name="condition_at_loan" class="select-trigger input">
+                                         <option value="excellent" ${loan.condition_at_loan === 'excellent' ? 'selected' : ''}>Excellent</option>
+                                         <option value="good" ${loan.condition_at_loan === 'good' ? 'selected' : ''}>Good</option>
+                                         <option value="fair" ${loan.condition_at_loan === 'fair' ? 'selected' : ''}>Fair</option>
+                                         <option value="poor" ${loan.condition_at_loan === 'poor' ? 'selected' : ''}>Poor</option>
+                                     </select>
+                                 </div>
+
+                                 <div class="flex-col">
+                                     <label for="notes" class="label">Notes</label>
+                                     <textarea id="notes" name="notes" class="textarea" rows="2">${loan.notes || ''}</textarea>
+                                 </div>
+                             </div>
+
+                             <div class="card-footer flex-row justify-end gap-4">
+                                 <button type="button" class="btn btn-outline" onclick="setState({ showLoanModal: false, editingLoan: null })">Cancel</button>
+                                 <button type="submit" class="btn btn-primary" onclick="event.preventDefault(); saveDocument('loans', getFormData('loan-form'), state.editingLoan)">
+                                     <span data-lucide="save" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                     ${isEdit ? 'Save Changes' : 'Create Loan'}
+                                 </button>
+                             </div>
+                         </form>
+                     </div>
+                 </div>
+             `;
+        }
+        
+        function renderMaintenanceFormModal() { /* Implementation of MaintenanceForm.jsx */
+             if (!state.showMaintenanceModal) return '';
+             const request = state.editingMaintenance;
+             const isEdit = !!request.id;
+
+             return `
+                 <div class="modal-overlay" onclick="setState({ showMaintenanceModal: false, editingMaintenance: null })">
+                     <div class="modal-content" style="max-width: 500px;" onclick="event.stopPropagation()">
+                         <form id="maintenance-form">
+                             <div class="card-header">
+                                 <h3 class="card-title">${isEdit ? 'Edit Request' : 'New Maintenance Request'}</h3>
+                                 <button type="button" class="btn btn-icon" onclick="setState({ showMaintenanceModal: false, editingMaintenance: null })">
+                                     <span data-lucide="x" style="width: 20px; height: 20px;"></span>
+                                 </button>
+                             </div>
+                             <div class="card-content space-y-4">
+                                 <div class="flex-col">
+                                     <label for="asset_id" class="label">Select Asset *</label>
+                                     <select id="asset_id" name="asset_id" class="select-trigger input" required onchange="
+                                        const asset = state.assets.find(a => a.id === this.value);
+                                        state.editingMaintenance.asset_name = asset ? asset.name : '';
+                                     ">
+                                         <option value="">Choose an asset</option>
+                                         ${state.assets.map(asset => `
+                                             <option value="${asset.id}" ${request.asset_id === asset.id ? 'selected' : ''}>
+                                                 ${asset.name} (${asset.asset_id})
+                                             </option>
+                                         `).join('')}
+                                     </select>
+                                     <input type="hidden" name="asset_name" value="${request.asset_name || ''}" />
+                                 </div>
+
+                                 <div class="flex-col">
+                                     <label for="title" class="label">Issue Title *</label>
+                                     <input id="title" name="title" class="input" value="${request.title || ''}" placeholder="Brief description of the issue" required />
+                                 </div>
+
+                                 <div class="flex-col">
+                                     <label for="description" class="label">Description *</label>
+                                     <textarea id="description" name="description" class="textarea" rows="4" placeholder="Detailed description of the maintenance needed" required>${request.description || ''}</textarea>
+                                 </div>
+                                 
+                                 <div class="form-grid" style="gap: 1rem;">
+                                     <div class="flex-col">
+                                         <label for="priority" class="label">Priority</label>
+                                         <select id="priority" name="priority" class="select-trigger input">
+                                             ${MAINTENANCE_PRIORITIES.map(p => `<option value="${p}" ${request.priority === p ? 'selected' : ''}>${p.charAt(0).toUpperCase() + p.slice(1)}</option>`).join('')}
+                                         </select>
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="scheduled_date" class="label">Scheduled Date</label>
+                                         <input id="scheduled_date" name="scheduled_date" class="input" type="date" value="${request.scheduled_date || ''}" />
+                                     </div>
+                                 </div>
+                                 
+                                 <div class="flex-col">
+                                     <label for="notes" class="label">Additional Notes</label>
+                                     <textarea id="notes" name="notes" class="textarea" rows="2">${request.notes || ''}</textarea>
+                                 </div>
+                             </div>
+
+                             <div class="card-footer flex-row justify-end gap-4">
+                                 <button type="button" class="btn btn-outline" onclick="setState({ showMaintenanceModal: false, editingMaintenance: null })">Cancel</button>
+                                 <button type="submit" class="btn btn-primary" onclick="event.preventDefault(); saveDocument('maintenances', getFormData('maintenance-form'), state.editingMaintenance)">
+                                     <span data-lucide="save" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                     Submit Request
+                                 </button>
+                             </div>
+                         </form>
+                     </div>
+                 </div>
+             `;
+        }
+        
+        function renderProcurementFormModal() { /* Implementation of ProcurementForm.jsx */
+             if (!state.showProcurementModal) return '';
+             const request = state.editingProcurement;
+             const isEdit = !!request.id;
+             
+             // Calculate total cost dynamically for form display
+             const currentTotalCost = (parseFloat(request.estimated_cost) * parseInt(request.quantity)) || 0;
+
+             return `
+                 <div class="modal-overlay" onclick="setState({ showProcurementModal: false, editingProcurement: null })">
+                     <div class="modal-content" style="max-width: 500px;" onclick="event.stopPropagation()">
+                         <form id="procurement-form">
+                             <div class="card-header">
+                                 <h3 class="card-title">${isEdit ? 'Edit Request' : 'New Procurement Request'}</h3>
+                                 <button type="button" class="btn btn-icon" onclick="setState({ showProcurementModal: false, editingProcurement: null })">
+                                     <span data-lucide="x" style="width: 20px; height: 20px;"></span>
+                                 </button>
+                             </div>
+                             <div class="card-content space-y-4">
+                                 <div class="flex-col">
+                                     <label for="item_name" class="label">Item Name *</label>
+                                     <input id="item_name" name="item_name" class="input" value="${request.item_name || ''}" placeholder="e.g., Dell Laptop" required />
+                                 </div>
+
+                                 <div class="form-grid" style="gap: 1rem;">
+                                     <div class="flex-col">
+                                         <label for="category" class="label">Category *</label>
+                                         <select id="category" name="category" class="select-trigger input">
+                                             ${CATEGORIES.map(c => `<option value="${c.value}" ${request.category === c.value ? 'selected' : ''}>${c.label}</option>`).join('')}
+                                         </select>
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="quantity" class="label">Quantity *</label>
+                                         <input id="quantity" name="quantity" class="input" type="number" min="1" value="${request.quantity || 1}" required 
+                                                oninput="
+                                                     state.editingProcurement.quantity = this.value; 
+                                                     state.editingProcurement.total_cost = (parseFloat(state.editingProcurement.estimated_cost) * parseInt(this.value)) || 0;
+                                                     render(); 
+                                                "/>
+                                     </div>
+                                 </div>
+                                 
+                                 <div class="form-grid" style="gap: 1rem;">
+                                     <div class="flex-col">
+                                         <label for="estimated_cost" class="label">Estimated Cost per Item (₹) *</label>
+                                         <input id="estimated_cost" name="estimated_cost" class="input" type="number" step="0.01" value="${request.estimated_cost || ''}" required 
+                                                oninput="
+                                                     state.editingProcurement.estimated_cost = this.value; 
+                                                     state.editingProcurement.total_cost = (parseFloat(this.value) * parseInt(state.editingProcurement.quantity)) || 0;
+                                                     render();
+                                                "/>
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="total_cost_display" class="label">Total Cost (₹)</label>
+                                         <input id="total_cost_display" name="total_cost_display" class="input" value="${formatCurrency(currentTotalCost).replace('₹', '')}" readonly style="background-color: #f0f0f0;" />
+                                         <input type="hidden" name="total_cost" value="${currentTotalCost}" />
+                                     </div>
+                                 </div>
+
+                                 <div class="flex-col">
+                                     <label for="urgency" class="label">Urgency</label>
+                                     <select id="urgency" name="urgency" class="select-trigger input">
+                                         ${PROCUREMENT_URGENCIES.map(u => `<option value="${u}" ${request.urgency === u ? 'selected' : ''}>${u.charAt(0).toUpperCase() + u.slice(1)}</option>`).join('')}
+                                     </select>
+                                 </div>
+
+                                 <div class="flex-col">
+                                     <label for="justification" class="label">Business Justification *</label>
+                                     <textarea id="justification" name="justification" class="textarea" rows="4" placeholder="Explain why this purchase is necessary" required>${request.justification || ''}</textarea>
+                                 </div>
+                             </div>
+
+                             <div class="card-footer flex-row justify-end gap-4">
+                                 <button type="button" class="btn btn-outline" onclick="setState({ showProcurementModal: false, editingProcurement: null })">Cancel</button>
+                                 <button type="submit" class="btn btn-primary" onclick="event.preventDefault(); saveDocument('procurements', getFormData('procurement-form'), state.editingProcurement)">
+                                     <span data-lucide="save" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                     Submit Request
+                                 </button>
+                             </div>
+                         </form>
+                     </div>
+                 </div>
+             `;
+        }
+        
+        function renderPropertyFormModal() { /* Implementation of PropertyForm.jsx */
+            if (!state.showPropertyModal) return '';
+            const property = state.editingProperty;
+            const isEdit = !!property.id;
+
+            return `
+                 <div class="modal-overlay" onclick="setState({ showPropertyModal: false, editingProperty: null })">
+                     <div class="modal-content" onclick="event.stopPropagation()">
+                         <form id="property-form">
+                             <div class="card-header">
+                                 <h3 class="card-title">${isEdit ? 'Edit Property' : 'Add New Property'}</h3>
+                                 <button type="button" class="btn btn-icon" onclick="setState({ showPropertyModal: false, editingProperty: null })">
+                                     <span data-lucide="x" style="width: 20px; height: 20px;"></span>
+                                 </button>
+                             </div>
+                             <div class="card-content space-y-4">
+                                 <div class="form-grid">
+                                     <div class="flex-col">
+                                         <label for="property_name" class="label">Property Name *</label>
+                                         <input id="property_name" name="property_name" class="input" value="${property.property_name || ''}" required />
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="property_type" class="label">Type *</label>
+                                         <select id="property_type" name="property_type" class="select-trigger input">
+                                             ${PROPERTY_TYPES.map(t => `<option value="${t}" ${property.property_type === t ? 'selected' : ''}>${formatStatus(t)}</option>`).join('')}
+                                         </select>
+                                     </div>
+                                 </div>
+
+                                 <div class="flex-col">
+                                     <label for="address" class="label">Address *</label>
+                                     <input id="address" name="address" class="input" value="${property.address || ''}" required />
+                                 </div>
+
+                                 <div class="form-grid">
+                                     <div class="flex-col">
+                                         <label for="city" class="label">City</label>
+                                         <input id="city" name="city" class="input" value="${property.city || ''}" />
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="state" class="label">State</label>
+                                         <input id="state" name="state" class="input" value="${property.state || ''}" />
+                                     </div>
+                                 </div>
+                                 
+                                 <div class="form-grid">
+                                     <div class="flex-col">
+                                         <label for="size_sqft" class="label">Size (sq ft)</label>
+                                         <input id="size_sqft" name="size_sqft" class="input" type="number" value="${property.size_sqft || ''}" />
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="ownership_type" class="label">Ownership</label>
+                                         <select id="ownership_type" name="ownership_type" class="select-trigger input">
+                                             ${PROPERTY_OWNERSHIP.map(o => `<option value="${o}" ${property.ownership_type === o ? 'selected' : ''}>${o.charAt(0).toUpperCase() + o.slice(1)}</option>`).join('')}
+                                         </select>
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="status" class="label">Status</label>
+                                         <select id="status" name="status" class="select-trigger input">
+                                             ${PROPERTY_STATUSES.map(s => `<option value="${s}" ${property.status === s ? 'selected' : ''}>${formatStatus(s)}</option>`).join('')}
+                                         </select>
+                                     </div>
+                                 </div>
+
+                                 <div class="form-grid">
+                                     <div class="flex-col">
+                                         <label for="purchase_value" class="label">Purchase Value (₹)</label>
+                                         <input id="purchase_value" name="purchase_value" class="input" type="number" step="0.01" value="${property.purchase_value || ''}" />
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="current_value" class="label">Current Value (₹)</label>
+                                         <input id="current_value" name="current_value" class="input" type="number" step="0.01" value="${property.current_value || ''}" />
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="monthly_cost" class="label">Monthly Cost (₹)</label>
+                                         <input id="monthly_cost" name="monthly_cost" class="input" type="number" step="0.01" value="${property.monthly_cost || ''}" />
+                                     </div>
+                                 </div>
+                                 
+                                 <div class="flex-col">
+                                     <label for="notes" class="label">Notes</label>
+                                     <textarea id="notes" name="notes" class="textarea" rows="2">${property.notes || ''}</textarea>
+                                 </div>
+                             </div>
+
+                             <div class="card-footer flex-row justify-between">
+                                 ${isEdit ? `
+                                    <button type="button" class="btn btn-destructive" onclick="deleteProperty(state.editingProperty)">
+                                        <span data-lucide="trash-2" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                        Delete
+                                    </button>
+                                 ` : '<div></div>'}
+                                 <div class="flex-row gap-4">
+                                     <button type="button" class="btn btn-outline" onclick="setState({ showPropertyModal: false, editingProperty: null })">Cancel</button>
+                                     <button type="submit" class="btn btn-primary" onclick="event.preventDefault(); saveDocument('properties', getFormData('property-form'), state.editingProperty)">
+                                         <span data-lucide="save" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                         ${isEdit ? 'Save Changes' : 'Save Property'}
+                                     </button>
+                                 </div>
+                             </div>
+                         </form>
+                     </div>
+                 </div>
+             `;
+        }
+        
+        function renderVendorFormModal() { /* Implementation of VendorForm.jsx */
+            if (!state.showVendorModal) return '';
+            const vendor = state.editingVendor;
+            const isEdit = !!vendor.id;
+
+            return `
+                 <div class="modal-overlay" onclick="setState({ showVendorModal: false, editingVendor: null })">
+                     <div class="modal-content" style="max-width: 500px;" onclick="event.stopPropagation()">
+                         <form id="vendor-form">
+                             <div class="card-header">
+                                 <h3 class="card-title">${isEdit ? 'Edit Vendor' : 'Add New Vendor'}</h3>
+                                 <button type="button" class="btn btn-icon" onclick="setState({ showVendorModal: false, editingVendor: null })">
+                                     <span data-lucide="x" style="width: 20px; height: 20px;"></span>
+                                 </button>
+                             </div>
+                             <div class="card-content space-y-4">
+                                 <div class="form-grid">
+                                     <div class="flex-col">
+                                         <label for="vendor_name" class="label">Vendor Name *</label>
+                                         <input id="vendor_name" name="vendor_name" class="input" value="${vendor.vendor_name || ''}" required />
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="contact_person" class="label">Contact Person</label>
+                                         <input id="contact_person" name="contact_person" class="input" value="${vendor.contact_person || ''}" />
+                                     </div>
+                                 </div>
+
+                                 <div class="form-grid">
+                                     <div class="flex-col">
+                                         <label for="email" class="label">Email *</label>
+                                         <input id="email" name="email" class="input" type="email" value="${vendor.email || ''}" required />
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="phone" class="label">Phone</label>
+                                         <input id="phone" name="phone" class="input" value="${vendor.phone || ''}" />
+                                     </div>
+                                 </div>
+
+                                 <div class="flex-col">
+                                     <label for="address" class="label">Address</label>
+                                     <input id="address" name="address" class="input" value="${vendor.address || ''}" />
+                                 </div>
+
+                                 <div class="form-grid">
+                                     <div class="flex-col">
+                                         <label for="category" class="label">Category</label>
+                                         <select id="category" name="category" class="select-trigger input">
+                                             ${VENDOR_CATEGORIES.map(c => `<option value="${c}" ${vendor.category === c ? 'selected' : ''}>${formatStatus(c)}</option>`).join('')}
+                                         </select>
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="rating" class="label">Rating (1-5)</label>
+                                         <input id="rating" name="rating" class="input" type="number" min="1" max="5" step="0.1" value="${vendor.rating || 3}" />
+                                     </div>
+                                 </div>
+                                 
+                                 <div class="flex-col">
+                                     <label for="notes" class="label">Notes</label>
+                                     <textarea id="notes" name="notes" class="textarea" rows="2">${vendor.notes || ''}</textarea>
+                                 </div>
+                             </div>
+
+                             <div class="card-footer flex-row justify-between">
+                                  ${isEdit ? `
+                                     <button type="button" class="btn btn-destructive" onclick="deleteVendor(state.editingVendor)">
+                                         <span data-lucide="trash-2" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                         Delete
+                                     </button>
+                                  ` : '<div></div>'}
+                                 <div class="flex-row gap-4">
+                                     <button type="button" class="btn btn-outline" onclick="setState({ showVendorModal: false, editingVendor: null })">Cancel</button>
+                                     <button type="submit" class="btn btn-primary" onclick="event.preventDefault(); saveDocument('vendors', getFormData('vendor-form'), state.editingVendor)">
+                                         <span data-lucide="save" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                         ${isEdit ? 'Save Changes' : 'Save Vendor'}
+                                     </button>
+                                 </div>
+                             </div>
+                         </form>
+                     </div>
+                 </div>
+             `;
+        }
+
+        // --- MAIN RENDER FUNCTION ---
+
+        function render() {
+            const contentArea = document.getElementById('content-area');
+            const modalsContainer = document.getElementById('modals-container');
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            // 1. Update Navigation Active State
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.dataset.page === state.currentPage) {
+                    link.classList.add('active');
+                }
+            });
+
+            // 2. Render Main Content
+            let contentHTML = '';
+            switch (state.currentPage) {
+                case 'dashboard': contentHTML = renderDashboard(); break;
+                case 'assets': contentHTML = renderAssetsPage(); break;
+                case 'loans': contentHTML = renderLoansPage(); break;
+                case 'maintenance': contentHTML = renderMaintenancePage(); break;
+                case 'procurement': contentHTML = renderProcurementPage(); break;
+                case 'properties': contentHTML = renderPropertiesPage(); break;
+                case 'vendors': contentHTML = renderVendorsPage(); break;
+                default: contentHTML = renderDashboard();
+            }
+            contentArea.innerHTML = contentHTML;
+
+            // 3. Render Modals (Only render one at a time)
+            let modalHTML = '';
+            if (state.showAssetModal) modalHTML = renderAssetFormModal();
+            else if (state.showLoanModal) modalHTML = renderLoanFormModal();
+            else if (state.showMaintenanceModal) modalHTML = renderMaintenanceFormModal();
+            else if (state.showProcurementModal) modalHTML = renderProcurementFormModal();
+            else if (state.showPropertyModal) modalHTML = renderPropertyFormModal();
+            else if (state.showVendorModal) modalHTML = renderVendorFormModal();
+            
+            modalsContainer.innerHTML = modalHTML;
+
+
+            // 4. Update Icons (Lucide)
+            lucide.createIcons();
+        }
+
+        // --- EVENT LISTENERS & INITIALIZATION ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeAppAndAuth();
+            
+            // Handle page navigation clicks
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    setState({ currentPage: e.target.dataset.page, 
+                                // Reset modals/filters when switching pages
+                                showAssetModal: false, showLoanModal: false, showMaintenanceModal: false,
+                                showProcurementModal: false, showPropertyModal: false, showVendorModal: false
+                             });
+                });
+            });
+            
+            // Initial render
+            render();
+        });
+
+    </script>
+</body>
+</html>

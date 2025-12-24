@@ -1,0 +1,3208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AssetFlow - Asset Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <!-- Chart.js for visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    
+    <style>
+        :root {
+            --color-primary: #4f46e5; /* Indigo-600 */
+            --color-primary-dark: #4338ca;
+            --color-text-dark: #1e293b; /* Slate-800 */
+            --color-text-light: #475569; /* Slate-600 */
+            --color-border: #e2e8f0; /* Slate-200 */
+            --color-bg-light: #f8fafc; /* Slate-50 */
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-danger: #ef4444;
+            --color-info: #3b82f6;
+        }
+        .theme-dark {
+            --color-primary: #6366f1;
+            --color-primary-dark: #4f46e5;
+            --color-text-dark: #e2e8f0;
+            --color-text-light: #cbd5e1;
+            --color-border: #334155;
+            --color-bg-light: #0f172a;
+            --card-bg: #0b1220;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-bg-light);
+            color: var(--color-text-dark);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* --- Utility Classes (Mimicking Tailwind) --- */
+        .flex-row { display: flex; align-items: center; }
+        .flex-col { display: flex; flex-direction: column; }
+        .justify-between { justify-content: space-between; }
+        .justify-end { justify-content: flex-end; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-6 { gap: 1.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mb-8 { margin-bottom: 2rem; }
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .pt-6 { padding-top: 1.5rem; }
+        .py-16 { padding-top: 4rem; padding-bottom: 4rem; }
+        .text-center { text-align: center; }
+        .mx-auto { margin-left: auto; margin-right: auto; }
+        .w-full { width: 100%; }
+
+        /* --- Navigation --- */
+        .header {
+            background: linear-gradient(180deg, rgba(79,70,229,0.06), rgba(79,70,229,0));
+            border-bottom: 1px solid var(--color-border);
+            padding: 1rem 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-link {
+            padding: 0.5rem 1rem;
+            margin-left: 0.5rem;
+            font-weight: 500;
+            color: var(--color-text-light);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .nav-link:hover, .nav-link.active {
+            background-color: var(--color-primary);
+            color: white;
+        }
+        .user-info {
+            font-size: 0.875rem;
+            color: var(--color-text-light);
+        }
+        .theme-dark .header { background: linear-gradient(180deg, rgba(99,102,241,0.12), rgba(15,23,42,0)); }
+
+        /* --- Cards --- */
+        .card {
+            background-color: var(--card-bg, #ffffff);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            transition: box-shadow 0.3s;
+        }
+        .card-list-item:hover {
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--color-text-dark);
+        }
+        .card-content {
+            padding: 1.5rem;
+        }
+        .card-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--color-border);
+        }
+
+        /* --- Buttons --- */
+        .btn {
+            padding: 0.6rem 1.2rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            user-select: none;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+            box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+        }
+        .btn-primary:hover {
+            background-color: var(--color-primary-dark);
+        }
+        .btn-outline {
+            background-color: white;
+            color: var(--color-text-light);
+            border-color: var(--color-border);
+        }
+        .btn-outline:hover {
+            background-color: var(--color-bg-light);
+            color: var(--color-text-dark);
+            border-color: var(--color-text-light);
+        }
+        .btn-destructive {
+            background-color: var(--color-danger);
+            color: white;
+        }
+        .btn-destructive:hover {
+            background-color: #c81d1d;
+        }
+        .btn-icon {
+            padding: 0.5rem;
+            background: none;
+            border: none;
+        }
+        .btn-icon:hover {
+            background-color: var(--color-bg-light);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* --- Forms --- */
+        .input, .textarea, .select-trigger {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            font-size: 1rem;
+            color: var(--color-text-dark);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: #ffffff;
+        }
+        .input:read-only, .input:disabled, .select-trigger:disabled {
+             background-color: var(--color-bg-light);
+             cursor: not-allowed;
+        }
+        .input:focus, .textarea:focus, .select-trigger:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+            outline: none;
+        }
+        .label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--color-text-dark);
+            margin-bottom: 0.5rem;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        @media (min-width: 768px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* --- Badges (Status/Priority) --- */
+        .badge {
+            display: inline-flex;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            border: 1px solid;
+            white-space: nowrap;
+        }
+        /* Asset Statuses */
+        .badge-active { background-color: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+        .badge-in_maintenance { background-color: #fef3c7; color: #b45309; border-color: #fcd34d; }
+        .badge-retired { background-color: #e2e8f0; color: #475569; border-color: #cbd5e1; }
+        .badge-lost { background-color: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        .badge-in_storage { background-color: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+
+        /* Loan Statuses */
+        .badge-loan-active { background-color: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+        .badge-loan-returned { background-color: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+        .badge-loan-overdue { background-color: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        .badge-loan-lost { background-color: #e2e8f0; color: #475569; border-color: #cbd5e1; }
+
+        /* Maintenance Statuses/Priorities */
+        .badge-maintenance-pending { background-color: #fef3c7; color: #b45309; border-color: #fcd34d; }
+        .badge-maintenance-approved { background-color: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+        .badge-maintenance-in_progress { background-color: #e9d5ff; color: #7e22ce; border-color: #d8b4fe; }
+        .badge-maintenance-completed { background-color: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+        .badge-priority-low { background-color: #dbeafe; color: #1e40af; border: none;}
+        .badge-priority-medium { background-color: #fcd34d; color: #b45309; border: none;}
+        .badge-priority-high { background-color: #fdb962; color: #c04900; border: none;}
+        .badge-priority-critical { background-color: #fecaca; color: #991b1b; border: none;}
+
+        /* Procurement Statuses/Urgency */
+        .badge-procurement-pending { background-color: #fef3c7; color: #b45309; border-color: #fcd34d; }
+        .badge-procurement-manager_approved { background-color: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+        .badge-procurement-admin_approved { background-color: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+        .badge-procurement-rejected { background-color: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        .badge-procurement-purchased { background-color: #e9d5ff; color: #7e22ce; border-color: #d8b4fe; }
+        .badge-procurement-delivered { background-color: #bae6fd; color: #075985; border-color: #7dd3fc; }
+        .badge-urgency-low { background-color: #dbeafe; color: #1e40af; border: none;}
+        .badge-urgency-medium { background-color: #fcd34d; color: #b45309; border: none;}
+        .badge-urgency-high { background-color: #fdb962; color: #c04900; border: none;}
+        .badge-urgency-urgent { background-color: #fecaca; color: #991b1b; border: none;}
+
+        /* Property Statuses */
+        .badge-property-active { background-color: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+        .badge-property-vacant { background-color: #fef3c7; color: #b45309; border-color: #fcd34d; }
+        .badge-property-under_renovation { background-color: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+        .badge-property-for_sale { background-color: #e9d5ff; color: #7e22ce; border-color: #d8b4fe; }
+        .badge-property-retired { background-color: #e2e8f0; color: #475569; border-color: #cbd5e1; }
+
+        /* Vendor Statuses */
+        .badge-vendor-active { background-color: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+        .badge-vendor-inactive { background-color: #e2e8f0; color: #475569; border-color: #cbd5e1; }
+        .badge-vendor-blacklisted { background-color: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        
+        /* Activity Log Colors */
+        .log-create { color: #065f46; }
+        .log-update { color: #1e40af; }
+        .log-delete { color: #991b1b; }
+        
+        /* Notification Colors */
+        .notif-info { border-color: #bfdbfe; background-color: #dbeafe; }
+        .notif-warning { border-color: #fcd34d; background-color: #fef3c7; }
+        .notif-success { border-color: #a7f3d0; background-color: #d1fae5; }
+        .notif-error { border-color: #fecaca; background-color: #fee2e2; }
+        
+        /* User Role Colors */
+        .badge-role-admin { background-color: #fecaca; color: #991b1b; border-color: #fecaca; }
+        .badge-role-manager { background-color: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+        .badge-role-user { background-color: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+
+
+        /* --- Stats Card Styling (from StatsCard.jsx) --- */
+        .stat-icon-container {
+            padding: 0.75rem;
+            border-radius: 12px;
+        }
+        .stat-icon { width: 24px; height: 24px; color: var(--color-text-dark); }
+        .stat-value { font-size: 2.25rem; font-weight: 700; color: var(--color-text-dark); margin-top: 0.5rem; }
+        .stat-title { font-size: 0.75rem; font-weight: 500; color: var(--color-text-light); text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-subtitle { font-size: 0.875rem; color: var(--color-text-light); margin-top: 0.5rem; }
+
+        /* --- Onboarding Styling --- */
+        .onboarding {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+            color: white;
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+        }
+        .onboarding-icon-wrapper {
+            width: 96px; height: 96px;
+            margin: 0 auto 1.5rem;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+        .onboarding h2 { font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .onboarding p { color: #e0e7ff; max-width: 400px; margin: 0.5rem auto 1.5rem; }
+        .btn-onboarding {
+            background-color: white;
+            color: var(--color-primary);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn-onboarding:hover {
+            background-color: #f0f4ff;
+        }
+
+        /* --- Assets List View --- */
+        .asset-list-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .asset-list-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .asset-list-list .card {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            padding: 1rem;
+        }
+        .asset-card-icon {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, #eef2ff, #f0f4ff);
+            border-radius: 12px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .asset-card-prop {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+            color: var(--color-text-light);
+            padding-bottom: 0.5rem;
+        }
+        .asset-card-prop-value {
+            font-weight: 500;
+            color: var(--color-text-dark);
+            text-align: right;
+        }
+        .asset-card-footer {
+            padding: 1rem;
+            border-top: 1px solid var(--color-border);
+            background-color: #f8fafc;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .asset-card-footer p { margin: 0; }
+
+        /* --- Modals (Forms/Confirm) --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+        .modal-content {
+            background-color: white;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 700px;
+            margin: 2rem 0;
+            animation: fadeIn 0.3s ease-out;
+        }
+        .confirm-modal-content {
+            max-width: 400px;
+        }
+        
+        /* --- General Layout --- */
+        .main-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .section-header {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            gap: 1rem;
+        }
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--color-text-dark);
+        }
+        @media (min-width: 768px) {
+            .section-header {
+                flex-direction: row;
+                align-items: center;
+            }
+        }
+
+        /* --- Responsive Grid Layouts --- */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        .dashboard-main { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .dashboard-secondary { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr; gap: 20px; }
+        
+    </style>
+</head>
+<body>
+
+    <!-- Main Application Container -->
+    <div id="app">
+        <div class="header">
+            <div class="header-content">
+                <div class="flex-row">
+                    <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary);">AssetFlow</h1>
+                    <nav class="flex-row" id="main-nav-links">
+                        <a href="#" class="nav-link active" data-page="dashboard">Dashboard</a>
+                        <a href="#" class="nav-link" data-page="assets">Assets</a>
+                        <a href="#" class="nav-link" data-page="loans">Loans</a>
+                        <a href="#" class="nav-link" data-page="maintenance">Maintenance</a>
+                        <a href="#" class="nav-link" data-page="procurement">Procurement</a>
+                        <a href="#" class="nav-link" data-page="properties">Properties</a>
+                        <a href="#" class="nav-link" data-page="vendors">Vendors</a>
+                        <a href="#" class="nav-link" data-page="activity" data-role="admin" style="display: none;">Activity</a>
+                        <a href="#" class="nav-link" data-page="reports" data-role="manager-admin" style="display: none;">Reports</a>
+                        <a href="#" class="nav-link" data-page="usermanagement" data-role="admin" style="display: none;">Users</a>
+                        <a href="#" class="nav-link" data-page="notifications">
+                           Notifications <span id="notif-count" class="badge" style="background-color: var(--color-danger); color: white; display: none; margin-left: 0.5rem; padding: 0.2rem 0.5rem;">0</span>
+                        </a>
+                        <a href="#" class="nav-link" data-page="settings">Settings</a>
+                    </nav>
+                </div>
+                <div class="user-info flex-row gap-4">
+                    <span id="user-display">Loading User...</span>
+                    <button class="btn btn-primary" onclick="showAddModalForCurrentPage()">
+                        <span data-lucide="plus" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                        Add New
+                    </button>
+                    <button id="theme-toggle" class="btn btn-outline btn-icon" title="Toggle theme">
+                        <span data-lucide="moon" style="width: 18px; height: 18px;"></span>
+                    </button>
+                    <button id="signout-btn" class="btn btn-outline btn-icon" title="Sign out" style="display: none;">
+                        <span data-lucide="log-out" style="width: 18px; height: 18px;"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container main-layout">
+            
+            <!-- Dynamic Content Area -->
+            <div id="content-area" class="content-area-wrapper">
+                <!-- Content will be injected here -->
+                <div style="padding: 2rem; text-align: center; color: var(--color-muted);">Loading application...</div>
+            </div>
+
+            <!-- Auth Container (shown when logged out) -->
+            <div id="auth-area" style="display:none; max-width: 480px; margin: 60px auto;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Welcome to AssetFlow</h3>
+                    </div>
+                    <div class="card-content">
+                        <p style="color: var(--color-text-light); margin-bottom: 1rem;">Sign in or create an account with your email. We'll send a one-time password (OTP) to verify.</p>
+                        <form id="auth-email-form" class="space-y-4" onsubmit="event.preventDefault(); requestOtp();">
+                            <label class="label" for="auth-email">Email</label>
+                            <input id="auth-email" class="input" type="email" placeholder="you@company.com" required />
+                            <button class="btn btn-primary w-full" type="submit">
+                                <span data-lucide="mail" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                Send OTP
+                            </button>
+                        </form>
+                        <hr style="border: none; border-top: 1px solid var(--color-border); margin: 1.25rem 0;" />
+                        <form id="auth-otp-form" class="space-y-4" onsubmit="event.preventDefault(); verifyOtp();">
+                            <label class="label" for="auth-otp">Enter OTP</label>
+                            <input id="auth-otp" class="input" type="text" placeholder="6-digit code" maxlength="6" />
+                            <button class="btn btn-primary w-full" type="submit">
+                                <span data-lucide="key-round" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                Verify & Sign in
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification/Message Box -->
+        <div id="message-box" class="card" style="position: fixed; top: 20px; right: 20px; z-index: 101; display: none; padding: 1rem; max-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"></div>
+        
+    </div>
+
+    <!-- Modals Container -->
+    <div id="modals-container">
+        <!-- Forms and Confirmations will be injected here -->
+    </div>
+
+    <noscript>
+        <div style="padding: 1rem; color: #b91c1c; background: #fee2e2; border: 1px solid #fecaca; margin: 1rem; border-radius: 8px;">
+            JavaScript is disabled. Please enable JavaScript to use this application.
+        </div>
+    </noscript>
+
+    <script>
+        // Global error handlers to surface issues instead of showing a blank page
+        (function () {
+            function show(msg) {
+                try {
+                    var box = document.getElementById('message-box');
+                    if (box) {
+                        box.textContent = msg;
+                        box.style.display = 'block';
+                        box.style.backgroundColor = '#fee2e2';
+                        box.style.border = '1px solid #fecaca';
+                        box.style.color = '#991b1b';
+                    }
+                    var content = document.getElementById('content-area');
+                    if (content) {
+                        content.innerHTML = '<div style="padding:1rem;color:#991b1b;background:#fee2e2;border:1px solid #fecaca;border-radius:8px;">' +
+                            msg + '</div>';
+                    }
+                } catch (e) {}
+            }
+            window.onerror = function (message, source, lineno, colno, error) {
+                show('A runtime error occurred: ' + message);
+            };
+            window.onunhandledrejection = function (event) {
+                var msg = (event && event.reason && (event.reason.message || String(event.reason))) || 'Unknown promise rejection';
+                show('An unexpected error occurred: ' + msg);
+            };
+        })();
+    </script>
+
+    <script type="module">
+        // --- DATE-FNS IMPORTS (ESM Version) ---
+        import format from "https://cdn.jsdelivr.net/npm/date-fns@2.29.3/esm/format/index.js";
+        import isPast from "https://cdn.jsdelivr.net/npm/date-fns@2.29.3/esm/isPast/index.js";
+        import parseISO from "https://cdn.jsdelivr.net/npm/date-fns@2.29.3/esm/parseISO/index.js";
+        import formatDistanceToNow from "https://cdn.jsdelivr.net/npm/date-fns@2.29.3/esm/formatDistanceToNow/index.js";
+        
+        // --- API CONFIG ---
+        const API_BASE_URL = `${window.location.origin}/api`;
+        const POLLING_INTERVAL = 5000; // Poll data every 5 seconds
+
+        // Mock User Email for Backend (Change this to test different roles: admin@org.com, manager@org.com, user@org.com)
+        let MOCK_USER_EMAIL = 'admin@org.com'; 
+        
+        // --- THEME ---
+        function applyTheme(theme) {
+            const body = document.body;
+            if (theme === 'dark') {
+                body.classList.add('theme-dark');
+            } else {
+                body.classList.remove('theme-dark');
+            }
+            const toggle = document.getElementById('theme-toggle');
+            if (toggle) {
+                toggle.innerHTML = '<span data-lucide="' + (theme === 'dark' ? 'sun' : 'moon') + '" style="width: 18px; height: 18px;"></span>';
+                if (window.lucide) { window.lucide.createIcons(); }
+            }
+        }
+        function initTheme() {
+            const saved = localStorage.getItem('theme') || 'light';
+            applyTheme(saved);
+            const toggle = document.getElementById('theme-toggle');
+            if (toggle) {
+                toggle.addEventListener('click', () => {
+                    const next = document.body.classList.contains('theme-dark') ? 'light' : 'dark';
+                    localStorage.setItem('theme', next);
+                    applyTheme(next);
+                });
+            }
+        }
+
+        // --- GLOBAL CONSTANTS ---
+
+        const CATEGORIES = [
+            { value: "computer", label: "Computer" }, { value: "mobile_device", label: "Mobile Device" }, 
+            { value: "furniture", label: "Furniture" }, { value: "vehicle", label: "Vehicle" }, 
+            { value: "software_license", label: "Software License" }, { value: "office_equipment", label: "Office Equipment" }, 
+            { value: "machinery", label: "Machinery" }, { value: "networking", label: "Networking" }, 
+            { value: "other", label: "Other" }
+        ];
+        const ASSET_STATUSES = [
+            { value: "active", label: "Active" }, { value: "in_maintenance", label: "In Maintenance" }, 
+            { value: "retired", label: "Retired" }, { value: "lost", label: "Lost" }, 
+            { value: "in_storage", label: "In Storage" }
+        ];
+
+        const ASSET_CATEGORIES = CATEGORIES.reduce((acc, cat) => { acc[cat.value] = cat.label; return acc; }, {});
+        
+        const categoryIcons = {
+            computer: "💻", mobile_device: "📱", furniture: "🪑", vehicle: "🚗", 
+            software_license: "💿", office_equipment: "🖨️", machinery: "⚙️", 
+            networking: "🌐", other: "📦"
+        };
+        
+        const assetStatusColors = {
+            active: "badge-active", in_maintenance: "badge-in_maintenance", 
+            retired: "badge-retired", lost: "badge-lost", in_storage: "badge-in_storage"
+        };
+        const loanStatusColors = {
+            "loan-active": "badge-loan-active",
+            "loan-overdue": "badge-loan-overdue",
+            "loan-returned": "badge-loan-returned",
+            "loan-lost": "badge-loan-lost"
+        };
+
+        const MAINTENANCE_PRIORITIES = ['low', 'medium', 'high', 'critical'];
+        const MAINTENANCE_STATUSES = ['pending', 'approved', 'in_progress', 'completed', 'cancelled'];
+        const PROCUREMENT_URGENCIES = ['low', 'medium', 'high', 'urgent'];
+        const PROCUREMENT_STATUSES = ['pending', 'manager_approved', 'admin_approved', 'rejected', 'purchased', 'delivered'];
+        const PROPERTY_TYPES = ['office', 'warehouse', 'retail', 'manufacturing', 'land', 'residential', 'data_center', 'other'];
+        const PROPERTY_OWNERSHIP = ['owned', 'leased', 'rented'];
+        const PROPERTY_STATUSES = ['active', 'vacant', 'under_renovation', 'for_sale', 'retired'];
+        const VENDOR_CATEGORIES = ['hardware', 'software', 'services', 'maintenance', 'real_estate', 'utilities', 'other'];
+        const VENDOR_STATUSES = ['active', 'inactive', 'blacklisted'];
+
+        const ACTIVITY_ACTIONS = {
+          CREATE_ASSET: { icon: 'plus-circle', color: 'log-create', detail: 'created a new asset' },
+          UPDATE_ASSET: { icon: 'pencil', color: 'log-update', detail: 'updated asset details' },
+          DELETE_ASSET: { icon: 'trash-2', color: 'log-delete', detail: 'deleted an asset' },
+          CREATE_LOAN: { icon: 'file-text', color: 'log-update', detail: 'created a new loan' },
+          RETURN_LOAN: { icon: 'check-circle', color: 'log-create', detail: 'marked a loan as returned' },
+          APPROVE_MAINTENANCE: { icon: 'wrench', color: 'log-create', detail: 'approved maintenance request' },
+        };
+
+
+        // --- SHARED STATE OBJECT ---
+
+        const state = {
+            currentPage: 'dashboard',
+            assets: [], loans: [], maintenances: [], procurements: [], 
+            properties: [], vendors: [], activities: [], notifications: [],
+            
+            users: [], 
+            currentUser: { role: 'guest', email: '', full_name: 'Guest' },
+            isAuthenticated: false,
+            
+            // Modal States
+            showAssetModal: false, editingAsset: null, showLoanModal: false, editingLoan: null,
+            showMaintenanceModal: false, editingMaintenance: null, showProcurementModal: false, editingProcurement: null,
+            showPropertyModal: false, editingProperty: null, showVendorModal: false, editingVendor: null,
+            showConfirmModal: false, confirmAction: null, 
+            
+            // Filtering state
+            assetFilters: { search: '', category: 'all', status: 'all' },
+            viewMode: 'grid', 
+        };
+
+        // --- UI UTILITY FUNCTIONS ---
+
+        /** Shows a temporary message notification. */
+        function showMessage(message, isError = false) { /* ... remains the same ... */
+            const box = document.getElementById('message-box');
+            box.textContent = message;
+            box.style.backgroundColor = isError ? '#fee2e2' : '#d1fae5';
+            box.style.color = isError ? '#991b1b' : '#065f46';
+            box.style.border = isError ? '1px solid #fecaca' : '1px solid #a7f3d0';
+            box.style.display = 'block';
+            setTimeout(() => { box.style.display = 'none'; }, 5000);
+        }
+
+        /** Simple State Update and Render */
+        function setState(newState) { /* ... remains the same ... */
+            Object.assign(state, newState);
+            render();
+        }
+        // Expose for inline handlers in injected HTML
+        window.setState = setState;
+        window.state = state;
+
+        function formatCurrency(value) { /* ... remains the same ... */
+            if (value === null || value === undefined || isNaN(value)) return '₹0';
+            return '₹' + parseFloat(value).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+        
+        function formatStatus(status) { /* ... remains the same ... */
+            if (!status) return 'N/A';
+            return status.replace(/_/g, ' ');
+        }
+        
+        function calculateStats(assets, loans) {
+            const totalValue = assets.reduce((sum, asset) => {
+                const value = Number(asset.current_value ?? asset.purchase_value ?? 0);
+                return sum + (isNaN(value) ? 0 : value);
+            }, 0);
+            const activeLoans = loans.filter(loan => loan.status === 'active').length;
+            const overdueLoans = loans.filter(loan => {
+                if (loan.status !== 'active') return false;
+                if (!loan.expected_return_date) return false;
+                try {
+                    return isPast(parseISO(loan.expected_return_date));
+                } catch (_) {
+                    return false;
+                }
+            }).length;
+            
+            return { totalValue, activeLoans, overdueLoans };
+        }
+        
+        function getFormData(formId) { /* ... remains the same ... */
+            const form = document.getElementById(formId);
+            const data = {};
+            new FormData(form).forEach((value, key) => {
+                data[key] = value;
+            });
+            return data;
+        }
+
+        // --- REST API UTILITY FUNCTIONS (REPLACING FIREBASE) ---
+
+        async function fetchApi(endpoint, method = 'GET', data = null, headers = {}) {
+            const url = `${API_BASE_URL}/${endpoint}`;
+            const config = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-User-Email': state.currentUser && state.currentUser.email ? state.currentUser.email : '',
+                    ...headers,
+                }
+            };
+
+            if (data && method !== 'GET') {
+                config.body = JSON.stringify(data);
+            }
+
+            try {
+                const response = await fetch(url, config);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+                    throw new Error(`API Error ${response.status}: ${errorData.error || response.statusText}`);
+                }
+                if (response.status === 204) return null; // DELETE success
+                return response.json();
+            } catch (error) {
+                console.error(`Fetch API Failed [${method} ${url}]:`, error);
+                throw error;
+            }
+        }
+        
+        // --- AUTH & DATA POLLING (REPLACING FIREBASE AUTH & ON-SNAPSHOT) ---
+        
+        let pollingIntervalId = null;
+
+        async function loadCurrentUser() {
+            try {
+                const user = await fetchApi('user/me');
+                state.currentUser = user;
+                state.isAuthenticated = true;
+                document.getElementById('user-display').textContent = `${user.full_name} (${user.role.toUpperCase()})`;
+                const signoutBtn = document.getElementById('signout-btn');
+                if (signoutBtn) signoutBtn.style.display = 'inline-flex';
+                return user;
+            } catch (error) {
+                console.error("Failed to load current user:", error);
+                state.currentUser = { role: 'guest', email: '', full_name: 'Guest' };
+                state.isAuthenticated = false;
+                // Show auth UI
+                const authArea = document.getElementById('auth-area');
+                const contentArea = document.getElementById('content-area');
+                if (authArea && contentArea) {
+                    authArea.style.display = 'block';
+                    contentArea.style.display = 'none';
+                }
+                return null;
+            }
+        }
+        
+        async function loadAllData() {
+            if (!state.currentUser.id) return;
+            
+            const collections = ['assets', 'loans', 'maintenances', 'procurements', 'properties', 'vendors', 'activities', 'notifications', 'users'];
+            
+            const dataPromises = collections.map(collectionName => 
+                fetchApi(collectionName).catch(error => {
+                    console.error(`Failed to fetch ${collectionName}:`, error);
+                    return []; // Return empty array on failure to prevent app crash
+                })
+            );
+
+            const [
+                assets, loans, maintenances, procurements, properties, vendors, 
+                activities, notifications, users
+            ] = await Promise.all(dataPromises);
+
+            setState({
+                assets, loans, maintenances, procurements, properties, vendors,
+                activities, notifications, users
+            });
+
+            updateNotificationCount(notifications);
+        }
+        
+        async function startDataPolling() {
+            if (pollingIntervalId) clearInterval(pollingIntervalId);
+
+            const user = await loadCurrentUser();
+            if (user) {
+                 await loadAllData();
+                 pollingIntervalId = setInterval(loadAllData, POLLING_INTERVAL);
+            }
+        }
+
+        function updateNotificationCount(notifications) { /* ... remains the same ... */
+            const unreadCount = notifications.filter(n => !n.read).length;
+            const countElement = document.getElementById('notif-count');
+            
+            countElement.textContent = unreadCount;
+            countElement.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+        }
+
+        // --- CRUD LOGIC (REPLACING FIREBASE FUNCTIONS) ---
+
+        async function saveDocument(collectionName, formData, existingDoc) {
+            try {
+                const isEdit = !!existingDoc?.id;
+                const docName = formData.name || formData.property_name || formData.vendor_name || formData.item_name || formData.title;
+                
+                // Convert numeric fields to numbers where necessary
+                Object.keys(formData).forEach(key => {
+                    if (['purchase_value', 'current_value', 'size_sqft', 'monthly_cost', 'estimated_cost', 'total_cost', 'rating', 'quantity'].includes(key)) {
+                        formData[key] = key === 'quantity' ? parseInt(formData[key] || 0) : parseFloat(formData[key] || 0);
+                    }
+                });
+                
+                if (collectionName === 'procurements') {
+                    formData.total_cost = formData.estimated_cost * formData.quantity;
+                }
+
+                if (isEdit) {
+                    await fetchApi(`${collectionName}/${existingDoc.id}`, 'PUT', formData);
+                    showMessage(`${collectionName.slice(0, -1)} updated successfully!`);
+                    if (collectionName === 'assets') await createActivity('UPDATE_ASSET', `updated asset "${docName}".`, docName);
+                } else {
+                    const newDoc = await fetchApi(collectionName, 'POST', formData);
+                    showMessage(`New ${collectionName.slice(0, -1)} added successfully!`);
+                    
+                    if (collectionName === 'assets') await createActivity('CREATE_ASSET', `created a new asset: "${docName}".`, docName);
+                    
+                    // Specific post-creation logic for Loans and Procurement (Mocked state change/notification)
+                    if (collectionName === 'loans') {
+                        await updateAssetStatus(formData.asset_id, 'in_storage'); // Asset status update
+                        await createNotification(formData.borrower_email, "Asset Loan Initiated", `Your request to borrow ${formData.asset_name} is being processed.`, "info");
+                        await createActivity('CREATE_LOAN', `created a new loan for "${formData.asset_name}".`, formData.asset_name);
+                    }
+                    if (collectionName === 'procurements' && state.currentUser.role !== 'user') {
+                        await createNotification('manager@org.com', "New Procurement Request", `${state.currentUser.full_name} submitted a request for ${formData.item_name}`, "info", 'procurement');
+                    }
+                }
+                
+                await loadAllData(); // Refresh data after mutation
+
+                // Close the appropriate modal
+                setState({ 
+                    [`show${collectionName.charAt(0).toUpperCase() + collectionName.slice(1, -1)}Modal`]: false, 
+                    [`editing${collectionName.charAt(0).toUpperCase() + collectionName.slice(1, -1)}`]: null,
+                    assetFilters: { search: '', category: 'all', status: 'all' }
+                });
+
+            } catch (error) {
+                console.error(`Error saving ${collectionName.slice(0, -1)}:`, error);
+                showMessage(`Failed to save ${collectionName.slice(0, -1)}: ${error.message}`, true);
+            }
+        }
+
+        async function deleteDocument(collectionName, docId, docName) {
+            try {
+                await fetchApi(`${collectionName}/${docId}`, 'DELETE');
+                showMessage(`${collectionName.slice(0, -1)} deleted successfully!`);
+                if (collectionName === 'assets') await createActivity('DELETE_ASSET', `deleted asset "${docName}".`, docName);
+
+                await loadAllData(); // Refresh data after mutation
+                setState({ showConfirmModal: false, confirmAction: null });
+            } catch (error) {
+                console.error(`Error deleting ${collectionName.slice(0, -1)}:`, error);
+                showMessage(`Failed to delete ${collectionName.slice(0, -1)}: ${error.message}`, true);
+            }
+        }
+
+        async function updateAssetStatus(assetId, newStatus) {
+            try {
+                const asset = state.assets.find(a => a.id === assetId);
+                if (asset) {
+                    await fetchApi(`assets/${assetId}`, 'PUT', { status: newStatus });
+                    await loadAllData();
+                }
+            } catch (error) {
+                 console.error("Failed to update asset status:", error);
+                 showMessage("Failed to update associated asset status.", true);
+            }
+        }
+        
+        // --- ACTIVITY & NOTIFICATION HELPERS (REPLACING FIREBASE) ---
+
+        async function createActivity(action, details, asset_name = '') {
+            try {
+                 await fetchApi('activities', 'POST', {
+                     user_email: state.currentUser.email,
+                     user_name: state.currentUser.full_name,
+                     action: action,
+                     details: details,
+                     asset_name: asset_name,
+                 });
+            } catch (error) {
+                console.error("Failed to log activity:", error);
+            }
+        }
+        
+        async function createNotification(userEmail, title, message, type = 'info', link = null) {
+            try {
+                 await fetchApi('notifications', 'POST', {
+                     user_email: userEmail,
+                     title: title,
+                     message: message,
+                     type: type, 
+                     link: link,
+                     read: false,
+                 });
+            } catch (error) {
+                console.error("Failed to send notification:", error);
+            }
+        }
+
+        // --- LOAN ACTIONS ---
+        async function updateLoanStatus(loan, newStatus) {
+            try {
+                await fetchApi(`loans/${loan.id}`, 'PUT', { 
+                    status: newStatus,
+                    actual_return_date: newStatus === 'returned' ? new Date().toISOString().split('T')[0] : loan.actual_return_date
+                });
+                
+                if (newStatus === 'returned') {
+                    await updateAssetStatus(loan.asset_id, 'active');
+                    await createNotification(loan.borrower_email, "Asset Returned", `Thank you for returning ${loan.asset_name}`, "success");
+                    await createActivity('RETURN_LOAN', `marked loan for "${loan.asset_name}" as returned.`, loan.asset_name);
+                    showMessage(`Loan marked as Returned. Asset status updated.`);
+                }
+                
+                await loadAllData(); 
+            } catch (error) {
+                console.error("Error updating loan:", error);
+                showMessage(`Failed to update loan status: ${error.message}`, true);
+            }
+        }
+        
+        // --- MAINTENANCE ACTIONS ---
+        async function updateMaintenanceStatus(request, newStatus) {
+            try {
+                await fetchApi(`maintenances/${request.id}`, 'PUT', { status: newStatus });
+                
+                if (newStatus === 'approved') {
+                    await updateAssetStatus(request.asset_id, 'in_maintenance');
+                    await createNotification(request.created_by, "Maintenance Approved", `Your request for ${request.asset_name} has been approved.`, "success");
+                    await createActivity('APPROVE_MAINTENANCE', `approved maintenance for "${request.asset_name}".`, request.asset_name);
+                    showMessage(`Maintenance approved. Asset set to 'In Maintenance'.`);
+                }
+                
+                if (newStatus === 'completed') {
+                    await updateAssetStatus(request.asset_id, 'active');
+                    showMessage(`Maintenance completed. Asset set to 'Active'.`);
+                }
+
+                await loadAllData(); 
+            } catch (error) {
+                console.error("Error updating maintenance:", error);
+                showMessage(`Failed to update maintenance status: ${error.message}`, true);
+            }
+        }
+        
+        // --- PROCUREMENT ACTIONS ---
+        async function updateProcurementStatus(request, newStatus) {
+            try {
+                await fetchApi(`procurements/${request.id}`, 'PUT', { status: newStatus });
+                
+                if (newStatus === 'manager_approved') {
+                    await createNotification('admin@org.com', "Procurement Needs Admin Approval", `Manager approved: ${request.item_name} (${formatCurrency(request.total_cost)})`, "info");
+                } else if (newStatus === 'admin_approved') {
+                    await createNotification(request.created_by, "Procurement Request Approved", `Your request for ${request.item_name} has been fully approved.`, "success");
+                } else if (newStatus === 'rejected') {
+                    await createNotification(request.created_by, "Procurement Request Rejected", `Your request for ${request.item_name} was not approved.`, "error");
+                }
+
+                showMessage(`Procurement status updated to ${formatStatus(newStatus)}.`);
+                await loadAllData(); 
+            } catch (error) {
+                console.error("Error updating procurement:", error);
+                showMessage(`Failed to update procurement status: ${error.message}`, true);
+            }
+        }
+        
+        // --- USER ACTIONS (Settings.jsx) ---
+        window.handleSaveSettings = async function(formData) {
+            try {
+                // In a real app, this would be a specific API endpoint like /api/user/settings
+                // We'll mock it by fetching the current user and simulating an update
+                const userUpdate = await fetchApi(`users/${state.currentUser.id}`, 'PUT', formData);
+                
+                // Update local state to reflect the change immediately
+                state.currentUser = { ...state.currentUser, ...userUpdate };
+                document.getElementById('user-display').textContent = `${state.currentUser.full_name} (${state.currentUser.role.toUpperCase()})`;
+                
+                showMessage("Settings saved successfully!");
+                await loadAllData(); // Refresh just in case (e.g. for UserManagement)
+            } catch (error) {
+                console.error("Failed to save settings:", error);
+                showMessage(`Failed to save settings: ${error.message}`, true);
+            }
+        }
+
+
+        // --- MODAL / VIEW HANDLERS (Unchanged business logic, relies on new CRUD) ---
+        window.showAddModalForCurrentPage = function() { /* ... remains the same ... */
+            switch(state.currentPage) {
+                case 'assets': showAssetForm(); break;
+                case 'loans': showLoanForm(); break;
+                case 'maintenance': showMaintenanceForm(); break;
+                case 'procurement': showProcurementForm(); break;
+                case 'properties': showPropertyForm(); break;
+                case 'vendors': showVendorForm(); break;
+                default: showAssetForm();
+            }
+        }
+
+        window.showAssetForm = function(asset = null) { /* ... remains the same ... */
+            const initialData = asset ? asset : {
+                name: "", asset_id: "", category: "computer", status: "active", purchase_date: "",
+                purchase_value: "", current_value: "", serial_number: "", manufacturer: "",
+                warranty_expiry: "", assigned_to_email: state.currentUser.email || "", 
+                owner_email: state.currentUser.email || "", location: "", notes: ""
+            };
+            setState({ showAssetModal: true, editingAsset: initialData });
+        }
+        window.handleEditAssetClick = function(assetId) { /* ... remains the same ... */
+             const asset = state.assets.find(a => a.id === assetId);
+             if (asset) showAssetForm(asset);
+        }
+        window.handleDeleteRequest = function(collectionName, docId, docName) { /* ... remains the same ... */
+            setState({ 
+                showConfirmModal: true, 
+                confirmAction: { collectionName, docId, docName }
+            });
+        }
+        window.handleConfirmDelete = function() { /* ... remains the same ... */
+            if (state.confirmAction) {
+                const { collectionName, docId, docName } = state.confirmAction;
+                // Close related edit modal first if open
+                setState({ 
+                    [`show${collectionName.charAt(0).toUpperCase() + collectionName.slice(1, -1)}Modal`]: false, 
+                    [`editing${collectionName.charAt(0).toUpperCase() + collectionName.slice(1, -1)}`]: null
+                });
+                deleteDocument(collectionName, docId, docName);
+            }
+        }
+        window.handleCancelConfirm = function() { /* ... remains the same ... */
+             setState({ showConfirmModal: false, confirmAction: null });
+        }
+        window.deleteAsset = function(asset) { /* ... remains the same ... */
+            window.handleDeleteRequest('assets', asset.id, asset.name);
+        }
+        window.deleteProperty = function(property) { /* ... remains the same ... */
+             window.handleDeleteRequest('properties', property.id, property.property_name);
+        }
+        window.deleteVendor = function(vendor) { /* ... remains the same ... */
+             window.handleDeleteRequest('vendors', vendor.id, vendor.vendor_name);
+        }
+        window.showLoanForm = function(loan = null) { /* ... remains the same ... */
+            const initialData = loan ? loan : {
+                asset_id: "", asset_name: "", borrower_email: "", borrower_name: "",
+                loan_date: new Date().toISOString().split('T')[0], expected_return_date: "",
+                purpose: "", condition_at_loan: "good", notes: "", status: "active"
+            };
+            setState({ showLoanModal: true, editingLoan: initialData });
+        }
+        window.handleReturnLoan = function(loan) { /* ... remains the same ... */
+            updateLoanStatus(loan, 'returned');
+        }
+        window.showMaintenanceForm = function(request = null) { /* ... remains the same ... */
+            const initialData = request ? request : {
+                asset_id: "", asset_name: "", title: "", description: "", priority: "medium", 
+                status: "pending", scheduled_date: "", technician: "", notes: ""
+            };
+            setState({ showMaintenanceModal: true, editingMaintenance: initialData });
+        }
+        window.handleApproveMaintenance = function(request) { /* ... remains the same ... */
+            updateMaintenanceStatus(request, 'approved');
+        }
+        window.handleCompleteMaintenance = function(request) { /* ... remains the same ... */
+            updateMaintenanceStatus(request, 'completed');
+        }
+        window.handleEditMaintenanceClick = function(requestId) { /* ... remains the same ... */
+             const request = state.maintenances.find(r => r.id === requestId);
+             if (request) setState({ editingMaintenance: request, showMaintenanceModal: true });
+        }
+        window.showProcurementForm = function(request = null) { /* ... remains the same ... */
+             const initialData = request ? request : {
+                item_name: "", category: "computer", quantity: 1, estimated_cost: "", total_cost: 0,
+                justification: "", urgency: "medium", status: "pending"
+             };
+             setState({ showProcurementModal: true, editingProcurement: initialData });
+        }
+        window.showPropertyForm = function(property = null) { /* ... remains the same ... */
+            const initialData = property ? property : {
+                property_name: "", property_type: "office", address: "", city: "", state: "", 
+                postal_code: "", country: "India", size_sqft: "", ownership_type: "owned",
+                purchase_date: "", purchase_value: "", current_value: "", monthly_cost: "",
+                lease_expiry: "", property_manager: "", status: "active", notes: ""
+            };
+            setState({ showPropertyModal: true, editingProperty: initialData });
+        }
+        window.handleEditPropertyClick = function(propertyId) { /* ... remains the same ... */
+             const property = state.properties.find(p => p.id === propertyId);
+             if (property) showPropertyForm(property);
+        }
+        window.showVendorForm = function(vendor = null) { /* ... remains the same ... */
+            const initialData = vendor ? vendor : {
+                vendor_name: "", contact_person: "", email: "", phone: "", address: "", 
+                website: "", category: "hardware", status: "active", rating: 3, 
+                contract_start: "", contract_end: "", payment_terms: "", notes: ""
+            };
+            setState({ showVendorModal: true, editingVendor: initialData });
+        }
+        window.handleEditVendorClick = function(vendorId) { /* ... remains the same ... */
+             const vendor = state.vendors.find(v => v.id === vendorId);
+             if (vendor) showVendorForm(vendor);
+        }
+        
+        function applyAssetFilters(assets, filters) {
+            let filtered = assets;
+            // Asset filtering logic is implemented in the frontend since the mock API doesn't support query parameters
+            const assetsToDisplay = state.currentUser.role === 'admin' ? filtered : filtered.filter(a => a.assigned_to_email === state.currentUser.email);
+            
+            filtered = assetsToDisplay;
+
+            // Category filter
+            if (filters.category !== 'all') {
+                filtered = filtered.filter(a => a.category === filters.category);
+            }
+
+            // Status filter
+            if (filters.status !== 'all') {
+                filtered = filtered.filter(a => a.status === filters.status);
+            }
+
+            // Search filter
+            if (filters.search) {
+                const searchLower = filters.search.toLowerCase();
+                filtered = filtered.filter(a => 
+                    a.name.toLowerCase().includes(searchLower) || 
+                    (a.asset_id && a.asset_id.toLowerCase().includes(searchLower)) ||
+                    (a.serial_number && a.serial_number.toLowerCase().includes(searchLower)) ||
+                    (a.assigned_to_email && a.assigned_to_email.toLowerCase().includes(searchLower))
+                );
+            }
+            return filtered;
+        }
+
+
+        // --- RENDERERS (UNMODIFIED LOGIC) ---
+
+        function renderStatsCard(stats) { /* ... (Unmodified render logic) ... */
+             const assetsToDisplay = state.currentUser.role === 'admin' ? state.assets : state.assets.filter(a => a.assigned_to_email === state.currentUser.email);
+             const maintenanceCount = state.maintenances.filter(m => m.status === 'pending' || m.status === 'approved').length;
+             const procurementPending = state.procurements.filter(p => p.status === 'pending' || p.status === 'manager_approved').length;
+
+            const cards = [
+                { title: 'Total Assets', value: assetsToDisplay.length, icon: 'package', color: '#4f46e5', delay: 0 },
+                { title: 'Total Value', value: formatCurrency(stats.totalValue), icon: 'dollar-sign', color: '#10b981', delay: 0.1 },
+                { title: 'Active Loans', value: stats.activeLoans, icon: 'repeat', color: '#3b82f6', delay: 0.2, subtitle: stats.overdueLoans > 0 ? `${stats.overdueLoans} Overdue` : '' },
+                { title: 'Open Maintenance', value: maintenanceCount, icon: 'wrench', color: '#f59e0b', delay: 0.3 },
+                { title: 'Pending Procurement', value: procurementPending, icon: 'shopping-cart', color: '#ec4899', delay: 0.4 },
+                { title: 'Total Properties', value: state.properties.length, icon: 'building-2', color: '#8b5cf6', delay: 0.5 },
+            ];
+
+            const filteredCards = cards.filter(card => {
+                if (state.currentUser.role === 'user') {
+                    if (card.title === 'Total Properties' || card.title === 'Pending Procurement') return false;
+                    if (card.title === 'Open Maintenance' && maintenanceCount === 0) return false;
+                }
+                return true;
+            });
+
+            return filteredCards.map(card => `
+                <div class="card stat-card" style="border-left: 5px solid ${card.color};">
+                    <div class="p-6">
+                        <div class="flex-row justify-between">
+                            <div class="flex-col" style="align-items: flex-start; gap: 0.5rem;">
+                                <p class="stat-title">${card.title}</p>
+                                <p class="stat-value" style="color: ${card.color};">${card.value}</p>
+                                ${card.subtitle ? `<p class="stat-subtitle" style="color: var(--color-danger); font-weight: 500;">${card.subtitle}</p>` : ''}
+                            </div>
+                            <div class="stat-icon-container" style="background-color: ${card.color}10;">
+                                <span data-lucide="${card.icon}" class="stat-icon" style="color: ${card.color};"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        let categoryChartInstance = null;
+        let reportChartInstance = null;
+        function renderCategoryChart(assets) { /* ... (Unmodified render logic) ... */
+             const counts = assets.reduce((acc, asset) => {
+                acc[asset.category] = (acc[asset.category] || 0) + 1;
+                return acc;
+            }, {});
+
+            const data = Object.entries(counts).map(([name, value]) => ({
+                name: ASSET_CATEGORIES[name] || formatStatus(name), value: value
+            }));
+            
+            const chartHtml = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Assets by Category</h3>
+                    </div>
+                    <div class="card-content pt-6" style="height: 300px;">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            `;
+
+            const COLORS = ['#6366F1', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#3B82F6', '#EAB308', '#F43F5E'];
+
+            setTimeout(() => {
+                const ctx = document.getElementById('categoryChart');
+                if (!ctx) return;
+
+                if (categoryChartInstance) { categoryChartInstance.destroy(); }
+
+                const chartData = {
+                    labels: data.map(d => d.name),
+                    datasets: [{
+                        data: data.map(d => d.value),
+                        backgroundColor: COLORS,
+                        hoverOffset: 4
+                    }]
+                };
+
+                categoryChartInstance = new Chart(ctx, {
+                    type: 'doughnut', data: chartData,
+                    options: { 
+                        responsive: true, maintainAspectRatio: false, 
+                        plugins: { 
+                            legend: { position: 'right' }, 
+                            tooltip: { callbacks: {
+                                label: function(context) { 
+                                    let label = context.label || ''; 
+                                    if (label) { label += ': '; } 
+                                    label += context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1) + '%';
+                                    return label + ' (' + percentage + ')';
+                                }
+                            }},
+                        }
+                    }
+                });
+            }, 0);
+            return chartHtml;
+        }
+
+        function renderRecentAssets(assets) { /* ... (Unmodified render logic) ... */
+             const recentAssets = assets.slice(0, 5).sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+
+            return `
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Recently Added Assets</h3>
+                    </div>
+                    <div class="p-0">
+                        <div style="border-top: 1px solid var(--color-border);">
+                            ${recentAssets.length === 0 ? `<div class="p-4 text-center text-slate-500">No recent assets added.</div>` : recentAssets.map(asset => `
+                                <div class="p-4 hover:bg-slate-50 transition-colors cursor-pointer group" onclick="handleEditAssetClick('${asset.id}')">
+                                    <div class="flex-row justify-between" style="align-items: flex-start;">
+                                        <div style="flex-grow: 1;">
+                                            <h4 style="font-weight: 500; font-size: 1rem; margin-bottom: 0.25rem;">${asset.name}</h4>
+                                            <p style="font-size: 0.875rem; color: var(--color-text-light); margin: 0;">${ASSET_CATEGORIES[asset.category] || 'Other'}</p>
+                                            <p class="asset-date" style="font-size: 0.75rem; color: #94a3b8;">
+                                                Added ${format(parseISO(asset.created_date || new Date().toISOString()), "MMM d, yyyy")}
+                                            </p>
+                                        </div>
+                                        <div class="badge ${assetStatusColors[asset.status] || 'badge-retired'}">
+                                            ${formatStatus(asset.status)}
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderDashboard() { /* ... (Unmodified render logic) ... */
+            const assetsToDisplay = state.currentUser.role === 'admin' ? state.assets : state.assets.filter(a => a.assigned_to_email === state.currentUser.email);
+            const stats = calculateStats(assetsToDisplay, state.loans);
+            let html = '';
+
+            const isNewUser = state.currentUser.role !== 'admin' && state.assets.filter(a => a.owner_email === state.currentUser.email).length === 0;
+
+            if (isNewUser) {
+                return `
+                    <div class="onboarding">
+                        <div class="onboarding-icon-wrapper"><span>👋</span></div>
+                        <h2>Welcome to AssetFlow!</h2>
+                        <p>You're all set up. Let's get started by adding your first asset to your inventory.</p>
+                        <button class="btn btn-onboarding" onclick="showAssetForm()">
+                            <span data-lucide="plus" style="width: 20px; height: 20px; margin-right: 8px;"></span>
+                            Add Your First Asset
+                        </button>
+                    </div>
+                `;
+            } else {
+                html = `
+                    <div class="flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                        <div>
+                            <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
+                                ${state.currentUser.role === 'admin' ? "Company Dashboard" : "My Assets"}
+                            </h1>
+                            <p class="text-slate-600">Monitor and manage your organization's assets</p>
+                        </div>
+                         <button class="btn btn-primary" onclick="showAssetForm()">
+                            <span data-lucide="plus" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                            Add Asset
+                        </button>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <div class="dashboard-main">
+                            ${renderStatsCard(stats)}
+                        </div>
+                        <div class="dashboard-secondary">
+                            ${renderCategoryChart(assetsToDisplay)}
+                            ${renderRecentAssets(assetsToDisplay)}
+                        </div>
+                    </div>
+                `;
+            }
+
+            return html;
+        }
+
+        function renderAssetCard(asset) { /* ... (Unmodified render logic) ... */
+            const icon = categoryIcons[asset.category] || '📦';
+            const value = formatCurrency(asset.current_value || asset.purchase_value);
+            const statusBadge = assetStatusColors[asset.status] || 'badge-retired';
+            const assignedTo = asset.assigned_to_email ? asset.assigned_to_email.split('@')[0] : 'Unassigned';
+
+            return `
+                <div class="card card-list-item flex-col h-full">
+                    <div class="p-6 flex-grow">
+                        <div class="flex-row justify-between mb-4" style="align-items: flex-start;">
+                            <div class="flex-row gap-3">
+                                <div class="asset-card-icon">${icon}</div>
+                                <div class="flex-col" style="align-items: flex-start;">
+                                    <h3 style="font-weight: 600; font-size: 1.125rem; margin: 0;">${asset.name}</h3>
+                                    <p style="font-size: 0.875rem; color: var(--color-text-light); margin: 0;">${ASSET_CATEGORIES[asset.category] || formatStatus(asset.category)}</p>
+                                </div>
+                            </div>
+                             <button class="btn btn-icon" onclick="event.stopPropagation(); handleEditAssetClick('${asset.id}')">
+                                 <span data-lucide="pencil" style="width: 16px; height: 16px;"></span>
+                             </button>
+                        </div>
+        
+                        <div class="space-y-3">
+                            <div class="asset-card-prop">
+                                <span>Status</span>
+                                <div class="badge ${statusBadge}">${formatStatus(asset.status)}</div>
+                            </div>
+
+                            <div class="asset-card-prop">
+                                <span><span data-lucide="dollar-sign" style="width: 14px; height: 14px; margin-right: 4px; display: inline-block;"></span>Value</span>
+                                <span class="asset-card-prop-value">${value}</span>
+                            </div>
+
+                            ${asset.location ? `<div class="asset-card-prop">
+                                <span><span data-lucide="map-pin" style="width: 14px; height: 14px; margin-right: 4px; display: inline-block;"></span>Location</span>
+                                <span class="asset-card-prop-value">${asset.location}</span>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                    
+                    <div class="asset-card-footer">
+                        <span data-lucide="user" style="width: 16px; height: 16px; color: var(--color-text-light);"></span>
+                        <p class="text-sm" style="color: var(--color-text-dark);">${asset.assigned_to_email ? asset.assigned_to_email.split('@')[0] : 'Unassigned'}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAssetListItem(asset) { /* ... (Unmodified render logic) ... */
+             const icon = categoryIcons[asset.category] || '📦';
+             const value = formatCurrency(asset.current_value || asset.purchase_value);
+             const statusBadge = assetStatusColors[asset.status] || 'badge-retired';
+             const assignedTo = asset.assigned_to_email ? asset.assigned_to_email.split('@')[0] : 'Unassigned';
+
+             return `
+                 <div class="card card-list-item" style="padding: 1rem;">
+                     <div class="flex-row gap-4 w-full justify-between" onclick="handleEditAssetClick('${asset.id}')" style="cursor: pointer;">
+                        <div class="flex-row gap-3" style="width: 40%; min-width: 200px;">
+                             <div class="asset-card-icon" style="width: 32px; height: 32px; font-size: 1rem;">${icon}</div>
+                             <div class="flex-col" style="align-items: flex-start; flex-grow: 1;">
+                                 <h4 style="font-weight: 600; font-size: 1rem; margin: 0;">${asset.name}</h4>
+                                 <p style="font-size: 0.75rem; color: var(--color-text-light); margin: 0;">ID: ${asset.asset_id || 'N/A'}</p>
+                             </div>
+                        </div>
+                        <div class="flex-row gap-6" style="width: 60%; justify-content: space-between;">
+                            <div class="badge ${statusBadge}">${formatStatus(asset.status)}</div>
+                            <div style="font-weight: 500; color: var(--color-text-dark);">${value}</div>
+                            <div style="font-size: 0.875rem; color: var(--color-text-light);">${asset.location || 'N/A'}</div>
+                            <div style="font-size: 0.875rem; color: var(--color-text-light);">${assignedTo}</div>
+                        </div>
+                    </div>
+                 </div>
+             `;
+        }
+        
+        function handleAssetFilterChange(e) { /* ... (Unmodified render logic) ... */
+            const { name, value } = e.target;
+            const newFilters = { ...state.assetFilters, [name]: value };
+            setState({ assetFilters: newFilters });
+        }
+        
+        function renderAssetFilters() { /* ... (Unmodified render logic) ... */
+            const filters = state.assetFilters;
+            
+            return `
+                <div class="flex-col gap-4 mb-6" style="display: flex; flex-direction: column;">
+                    <div class="relative w-full">
+                        <span data-lucide="search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94a3b8;"></span>
+                        <input
+                            type="text"
+                            placeholder="Search assets..."
+                            class="input"
+                            name="search"
+                            value="${filters.search}"
+                            oninput="handleAssetFilterChange(event)"
+                            style="padding-left: 2.5rem;"
+                        />
+                    </div>
+                    
+                    <div class="form-grid" style="gap: 1rem;">
+                        <select class="select-trigger input" name="category" onchange="handleAssetFilterChange(event)">
+                            <option value="all">All Categories</option>
+                            ${CATEGORIES.map(c => `<option value="${c.value}" ${filters.category === c.value ? 'selected' : ''}>${c.label}</option>`).join('')}
+                        </select>
+                        
+                        <select class="select-trigger input" name="status" onchange="handleAssetFilterChange(event)">
+                            <option value="all">All Statuses</option>
+                            ${ASSET_STATUSES.map(s => `<option value="${s.value}" ${filters.status === s.value ? 'selected' : ''}>${s.label}</option>`).join('')}
+                        </select>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAssetsPage() { /* ... (Unmodified render logic) ... */
+            const filteredAssets = applyAssetFilters(state.assets, state.assetFilters);
+            const viewClass = state.viewMode === 'grid' ? 'asset-list-grid' : 'asset-list-list';
+            const renderer = state.viewMode === 'grid' ? renderAssetCard : renderAssetListItem;
+            
+            return `
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">${state.currentUser.role === 'admin' ? "Asset Inventory" : "My Assigned Assets"} (${filteredAssets.length})</h2>
+                        <p class="text-slate-600">${state.currentUser.role === 'admin' ? "Manage all organizational assets" : "Assets currently assigned to you"}</p>
+                    </div>
+                    <div class="flex-row gap-3">
+                         <div class="flex-row bg-white rounded-lg border border-slate-200 p-1">
+                            <button class="btn btn-icon ${state.viewMode === 'grid' ? 'btn-primary' : 'btn-outline'}" 
+                                onclick="setState({ viewMode: 'grid' })">
+                                <span data-lucide="grid" style="width: 16px; height: 16px;"></span>
+                            </button>
+                            <button class="btn btn-icon ${state.viewMode === 'list' ? 'btn-primary' : 'btn-outline'}" 
+                                onclick="setState({ viewMode: 'list' })">
+                                <span data-lucide="list" style="width: 16px; height: 16px;"></span>
+                            </button>
+                        </div>
+                        <button class="btn btn-primary" onclick="showAssetForm()">
+                            <span data-lucide="plus" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                            Add Asset
+                        </button>
+                    </div>
+                </div>
+
+                ${renderAssetFilters()}
+                
+                <div class="${viewClass}">
+                    ${filteredAssets.length === 0 
+                        ? `<p class="p-6 text-center" style="grid-column: 1 / -1; color: var(--color-text-light);">No assets match the current filters.</p>` 
+                        : filteredAssets.map(renderer).join('')}
+                </div>
+            `;
+        }
+        
+        function renderLoanCard(loan) { /* ... (Unmodified render logic) ... */
+            const isOverdue = loan.status === 'active' && loan.expected_return_date && isPast(parseISO(loan.expected_return_date));
+            const status = isOverdue ? 'overdue' : loan.status;
+            const statusBadgeClass = loanStatusColors[`loan-${status}`] || loanStatusColors['loan-active'];
+            const canReturn = loan.status === 'active' && (state.currentUser.role === 'admin' || state.currentUser.role === 'manager');
+            
+            return `
+                <div class="card card-list-item flex-col h-full">
+                    <div class="p-6">
+                        <div class="flex-row justify-between mb-4" style="align-items: flex-start;">
+                            <div class="flex-row gap-3">
+                                <div class="asset-card-icon" style="background-color: #f0f4ff;">
+                                    <span data-lucide="package" style="width: 24px; height: 24px; color: var(--color-primary);"></span>
+                                </div>
+                                <div class="flex-col" style="align-items: flex-start;">
+                                    <h3 style="font-weight: 600; font-size: 1.125rem; margin: 0;">${loan.asset_name}</h3>
+                                    <p style="font-size: 0.875rem; color: var(--color-text-light); margin: 0;">Loaned to ${loan.borrower_name}</p>
+                                </div>
+                            </div>
+                            <div class="badge ${statusBadgeClass}">${status.toUpperCase()}</div>
+                        </div>
+
+                        <div class="space-y-2 mb-4" style="font-size: 0.875rem; color: var(--color-text-light);">
+                            <div class="flex-row gap-2" style="align-items: flex-start;">
+                                <span data-lucide="user" style="width: 16px; height: 16px; flex-shrink: 0;"></span>
+                                <span>Borrower: <span style="color: var(--color-text-dark);">${loan.borrower_email}</span></span>
+                            </div>
+                            <div class="flex-row gap-2" style="align-items: flex-start;">
+                                <span data-lucide="calendar" style="width: 16px; height: 16px; flex-shrink: 0;"></span>
+                                <span>Borrowed: <span style="color: var(--color-text-dark);">${format(parseISO(loan.loan_date), "MMM d, yyyy")}</span></span>
+                            </div>
+                            <div class="flex-row gap-2" style="align-items: flex-start;">
+                                <span data-lucide="calendar-check" style="width: 16px; height: 16px; flex-shrink: 0;"></span>
+                                <span>Expected Return: <span style="color: ${isOverdue ? 'var(--color-danger)' : 'var(--color-text-dark)'}; font-weight: 500;">${format(parseISO(loan.expected_return_date), "MMM d, yyyy")}</span></span>
+                            </div>
+                        </div>
+
+                        ${canReturn ? `
+                            <button class="btn btn-sm w-full" style="background-color: var(--color-success); color: white; margin-top: 1rem;" 
+                                onclick="handleReturnLoan({id: '${loan.id}', asset_id: '${loan.asset_id}', asset_name: '${loan.asset_name}', status: 'active'})">
+                                <span data-lucide="check-circle" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                Mark as Returned
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderLoansPage() { /* ... (Unmodified render logic) ... */
+            const loansToDisplay = state.loans.map(loan => {
+                if (loan.status === 'active' && loan.expected_return_date && isPast(parseISO(loan.expected_return_date))) {
+                    return { ...loan, status: 'overdue' };
+                }
+                return loan;
+            });
+            
+            const stats = {
+                active: loansToDisplay.filter(l => l.status === "active").length,
+                overdue: loansToDisplay.filter(l => l.status === "overdue").length,
+                returned: loansToDisplay.filter(l => l.status === "returned").length,
+            };
+            
+            const filteredLoans = loansToDisplay.filter(l => state.assetFilters.status === 'all' || l.status === state.assetFilters.status);
+
+            return `
+                <div class="flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                    <div>
+                        <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">Asset Loans</h1>
+                        <p class="text-slate-600">Track asset checkouts and returns</p>
+                    </div>
+                    ${(state.currentUser.role === 'admin' || state.currentUser.role === 'manager') ? `
+                        <button class="btn btn-primary" onclick="showLoanForm()">
+                            <span data-lucide="plus" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                            New Loan
+                        </button>
+                    ` : ''}
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="card stat-card" style="border-left: 5px solid var(--color-info);">
+                        <div class="p-6">
+                          <p class="text-sm text-slate-500">Active Loans</p>
+                          <p class="stat-value" style="color: var(--color-info);">${stats.active}</p>
+                        </div>
+                    </div>
+                    <div class="card stat-card" style="border-left: 5px solid var(--color-danger);">
+                        <div class="p-6">
+                          <p class="text-sm text-slate-500">Overdue</p>
+                          <p class="stat-value" style="color: var(--color-danger);">${stats.overdue}</p>
+                        </div>
+                    </div>
+                    <div class="card stat-card" style="border-left: 5px solid var(--color-success);">
+                        <div class="p-6">
+                          <p class="text-sm text-slate-500">Returned</p>
+                          <p class="stat-value" style="color: var(--color-success);">${stats.returned}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-row gap-2 mb-6" style="flex-wrap: wrap;">
+                  ${["all", "active", "overdue", "returned", "lost"].map((status) => `
+                    <button
+                      class="btn btn-sm ${state.assetFilters.status === status ? 'btn-primary' : 'btn-outline'}"
+                      onclick="setState({ assetFilters: { ...state.assetFilters, status: '${status}' } })"
+                    >
+                      ${status.replace(/_/g, ' ').toUpperCase()}
+                    </button>
+                  `).join('')}
+                </div>
+
+                <div class="asset-list-grid">
+                    ${filteredLoans.length === 0 
+                        ? `<p class="p-6 text-center" style="grid-column: 1 / -1; color: var(--color-text-light);">No loans found.</p>` 
+                        : filteredLoans.map(renderLoanCard).join('')}
+                </div>
+            `;
+        }
+
+        function renderMaintenanceCard(request) { /* ... (Unmodified render logic) ... */
+            const statusBadgeClass = `badge-maintenance-${request.status}`;
+            const priorityBadgeClass = `badge-priority-${request.priority}`;
+            const canApprove = request.status === 'pending' && (state.currentUser.role === 'admin' || state.currentUser.role === 'manager');
+            const canComplete = request.status === 'approved' && (state.currentUser.role === 'admin' || state.currentUser.role === 'manager');
+
+            return `
+                <div class="card card-list-item flex-col h-full" style="margin-bottom: 20px;">
+                    <div class="p-6">
+                        <div class="flex-row justify-between mb-2" style="align-items: flex-start;">
+                            <div class="flex-col" style="align-items: flex-start;">
+                                <div class="flex-row gap-2 mb-1" style="align-items: center;">
+                                    <h3 style="font-weight: 600; font-size: 1.125rem; margin: 0;">${request.title}</h3>
+                                    <div class="badge ${priorityBadgeClass}">${request.priority.toUpperCase()}</div>
+                                </div>
+                                <p style="font-size: 0.9rem; color: var(--color-text-dark); margin: 0;">Asset: ${request.asset_name || 'N/A'}</p>
+                                <p style="font-size: 0.875rem; color: var(--color-text-light); margin: 0.5rem 0 0;">${request.description.substring(0, 100)}${request.description.length > 100 ? '...' : ''}</p>
+                            </div>
+                            <div class="badge ${statusBadgeClass}">${formatStatus(request.status)}</div>
+                        </div>
+
+                        <div class="flex-row gap-6 mt-4" style="font-size: 0.8rem; color: var(--color-text-light);">
+                            <span>Requested: ${format(parseISO(request.created_date), "MMM d, yyyy")}</span>
+                            ${request.scheduled_date ? `<span>Scheduled: ${format(parseISO(request.scheduled_date), "MMM d, yyyy")}</span>` : ''}
+                            <span>By: ${request.created_by.split('@')[0]}</span>
+                        </div>
+
+                        <div class="flex-row gap-2 mt-4 justify-end">
+                            ${canApprove ? `
+                                <button class="btn btn-sm" style="background-color: var(--color-success); color: white;" 
+                                    onclick="handleApproveMaintenance({id: '${request.id}', asset_id: '${request.asset_id}', status: 'pending'})">
+                                    <span data-lucide="check-circle" style="width: 14px; height: 14px; margin-right: 4px;"></span>
+                                    Approve
+                                </button>
+                            ` : ''}
+                             ${canComplete ? `
+                                <button class="btn btn-sm" style="background-color: var(--color-primary); color: white;" 
+                                    onclick="handleCompleteMaintenance({id: '${request.id}', asset_id: '${request.asset_id}', status: 'approved'})">
+                                    <span data-lucide="check" style="width: 14px; height: 14px; margin-right: 4px;"></span>
+                                    Complete
+                                </button>
+                            ` : ''}
+                            <button class="btn btn-sm btn-outline" onclick="handleEditMaintenanceClick('${request.id}')">
+                                <span data-lucide="pencil" style="width: 14px; height: 14px; margin-right: 4px;"></span>
+                                Edit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderMaintenancePage() { /* ... (Unmodified render logic) ... */
+             const filteredRequests = state.maintenances.filter(r => state.assetFilters.status === 'all' || r.status === state.assetFilters.status);
+
+             const stats = {
+                pending: state.maintenances.filter(r => r.status === "pending").length,
+                in_progress: state.maintenances.filter(r => r.status === "in_progress").length,
+                completed: state.maintenances.filter(r => r.status === "completed").length,
+             };
+
+            return `
+                <div class="flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                    <div>
+                        <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">Maintenance</h1>
+                        <p class="text-slate-600">Manage asset maintenance requests and schedules</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="showMaintenanceForm()">
+                        <span data-lucide="plus" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                        New Request
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="card stat-card" style="border-left: 5px solid var(--color-warning);">
+                        <div class="p-6">
+                          <p class="text-sm text-slate-500">Pending</p>
+                          <p class="stat-value" style="color: var(--color-warning);">${stats.pending}</p>
+                        </div>
+                    </div>
+                    <div class="card stat-card" style="border-left: 5px solid #a855f7;">
+                        <div class="p-6">
+                          <p class="text-sm text-slate-500">In Progress</p>
+                          <p class="stat-value" style="color: #a855f7;">${stats.in_progress}</p>
+                        </div>
+                    </div>
+                    <div class="card stat-card" style="border-left: 5px solid var(--color-success);">
+                        <div class="p-6">
+                          <p class="text-sm text-slate-500">Completed</p>
+                          <p class="stat-value" style="color: var(--color-success);">${stats.completed}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-row gap-2 mb-6" style="flex-wrap: wrap;">
+                  ${["all", "pending", "approved", "in_progress", "completed"].map((status) => `
+                    <button
+                      class="btn btn-sm ${state.assetFilters.status === status ? 'btn-primary' : 'btn-outline'}"
+                      onclick="setState({ assetFilters: { ...state.assetFilters, status: '${status}' } })"
+                    >
+                      ${status.replace(/_/g, ' ').toUpperCase()}
+                    </button>
+                  `).join('')}
+                </div>
+
+                <div>
+                    ${filteredRequests.length === 0 
+                        ? `<p class="p-6 text-center" style="color: var(--color-text-light);">No maintenance requests found.</p>` 
+                        : filteredRequests.map(renderMaintenanceCard).join('')}
+                </div>
+            `;
+        }
+        
+        function renderProcurementCard(request) { /* ... (Unmodified render logic) ... */
+            const statusBadgeClass = `badge-procurement-${request.status}`;
+            const urgencyBadgeClass = `badge-urgency-${request.urgency}`;
+            const canManagerApprove = state.currentUser.role === 'manager' && request.status === 'pending';
+            const canAdminApprove = state.currentUser.role === 'admin' && request.status === 'manager_approved';
+
+            return `
+                <div class="card card-list-item flex-col h-full" style="margin-bottom: 20px;">
+                    <div class="p-6">
+                        <div class="flex-row justify-between mb-4" style="align-items: flex-start;">
+                            <div class="flex-col" style="align-items: flex-start; flex-grow: 1;">
+                                <div class="flex-row gap-2 mb-1" style="align-items: center;">
+                                    <h3 style="font-weight: 600; font-size: 1.125rem; margin: 0;">${request.item_name}</h3>
+                                    <div class="badge ${urgencyBadgeClass}">${request.urgency.toUpperCase()}</div>
+                                </div>
+                                <p style="font-size: 0.9rem; color: var(--color-text-dark); margin: 0;">
+                                    ${request.quantity} x ${formatCurrency(request.estimated_cost)} = 
+                                    <span style="font-weight: 600;">${formatCurrency(request.total_cost)}</span>
+                                </p>
+                                <p style="font-size: 0.875rem; color: var(--color-text-light); margin-top: 0.5rem;">${request.justification.substring(0, 100)}${request.justification.length > 100 ? '...' : ''}</p>
+                            </div>
+                            <div class="badge ${statusBadgeClass}">${formatStatus(request.status)}</div>
+                        </div>
+
+                        <div class="flex-row justify-between mt-4" style="font-size: 0.8rem; color: var(--color-text-light);">
+                            <div class="flex-row gap-4">
+                                <span>Requested: ${format(parseISO(request.created_date), "MMM d, yyyy")}</span>
+                                <span>By: ${request.created_by.split('@')[0]}</span>
+                            </div>
+                            
+                            <div class="flex-row gap-2">
+                                ${canManagerApprove ? `
+                                    <button class="btn btn-sm" style="background-color: var(--color-success); color: white;" 
+                                        onclick="updateProcurementStatus({id: '${request.id}', item_name: '${request.item_name}', total_cost: ${request.total_cost}, created_by: '${request.created_by}'}, 'manager_approved')">
+                                        <span data-lucide="check-circle" style="width: 14px; height: 14px; margin-right: 4px;"></span>
+                                        Mgr. Approve
+                                    </button>
+                                    <button class="btn btn-sm btn-destructive" 
+                                        onclick="updateProcurementStatus({id: '${request.id}', item_name: '${request.item_name}', created_by: '${request.created_by}'}, 'rejected')">
+                                        <span data-lucide="x-circle" style="width: 14px; height: 14px; margin-right: 4px;"></span>
+                                        Reject
+                                    </button>
+                                ` : ''}
+                                ${canAdminApprove ? `
+                                    <button class="btn btn-sm" style="background-color: var(--color-success); color: white;" 
+                                        onclick="updateProcurementStatus({id: '${request.id}', item_name: '${request.item_name}', created_by: '${request.created_by}'}, 'admin_approved')">
+                                        <span data-lucide="check-circle" style="width: 14px; height: 14px; margin-right: 4px;"></span>
+                                        Adm. Approve
+                                    </button>
+                                    <button class="btn btn-sm btn-destructive" 
+                                        onclick="updateProcurementStatus({id: '${request.id}', item_name: '${request.item_name}', created_by: '${request.created_by}'}, 'rejected')">
+                                        <span data-lucide="x-circle" style="width: 14px; height: 14px; margin-right: 4px;"></span>
+                                        Reject
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderProcurementPage() { /* ... (Unmodified render logic) ... */
+             const filteredRequests = state.procurements.filter(r => state.assetFilters.status === 'all' || r.status === state.assetFilters.status);
+             
+             const stats = {
+                pending: state.procurements.filter(r => r.status === "pending" || r.status === "manager_approved").length,
+                approved: state.procurements.filter(r => r.status === "admin_approved").length,
+                total_value: state.procurements.filter(r => r.status === "admin_approved").reduce((sum, r) => sum + (r.total_cost || 0), 0)
+             };
+
+            return `
+                <div class="flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                    <div>
+                        <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">Procurement</h1>
+                        <p class="text-slate-600">Manage purchase requests and approvals</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="showProcurementForm()">
+                        <span data-lucide="plus" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                        New Request
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="card stat-card" style="border-left: 5px solid var(--color-warning);">
+                        <div class="p-6">
+                          <p class="text-sm text-slate-500">Pending</p>
+                          <p class="stat-value" style="color: var(--color-warning);">${stats.pending}</p>
+                        </div>
+                    </div>
+                    <div class="card stat-card" style="border-left: 5px solid var(--color-success);">
+                        <div class="p-6">
+                          <p class="text-sm text-slate-500">Approved</p>
+                          <p class="stat-value" style="color: var(--color-success);">${stats.approved}</p>
+                        </div>
+                    </div>
+                    <div class="card stat-card" style="border-left: 5px solid var(--color-primary);">
+                        <div class="p-6">
+                          <p class="text-sm text-slate-500">Approved Value</p>
+                          <p class="stat-value" style="color: var(--color-primary); font-size: 1.5rem;">${formatCurrency(stats.total_value)}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex-row gap-2 mb-6" style="flex-wrap: wrap;">
+                  ${["all", "pending", "manager_approved", "admin_approved", "rejected"].map((status) => `
+                    <button
+                      class="btn btn-sm ${state.assetFilters.status === status ? 'btn-primary' : 'btn-outline'}"
+                      onclick="setState({ assetFilters: { ...state.assetFilters, status: '${status}' } })"
+                    >
+                      ${status.replace(/_/g, ' ').toUpperCase()}
+                    </button>
+                  `).join('')}
+                </div>
+
+                <div>
+                    ${filteredRequests.length === 0 
+                        ? `<p class="p-6 text-center" style="color: var(--color-text-light);">No procurement requests found.</p>` 
+                        : filteredRequests.map(renderProcurementCard).join('')}
+                </div>
+            `;
+        }
+
+        function renderPropertyCard(property) { /* ... (Unmodified render logic) ... */
+            const statusBadgeClass = `badge-property-${property.status}`;
+            const value = formatCurrency(property.current_value || property.purchase_value);
+
+            return `
+                <div class="card card-list-item flex-col h-full">
+                    <div class="p-6">
+                        <div class="flex-row justify-between mb-4" style="align-items: flex-start;">
+                            <div class="flex-row gap-3">
+                                <div class="asset-card-icon" style="background-color: #f0f4ff;">
+                                    <span data-lucide="building-2" style="width: 24px; height: 24px; color: var(--color-primary);"></span>
+                                </div>
+                                <div class="flex-col" style="align-items: flex-start;">
+                                    <h3 style="font-weight: 600; font-size: 1.125rem; margin: 0;">${property.property_name}</h3>
+                                    <p style="font-size: 0.875rem; color: var(--color-text-light); margin: 0;">${formatStatus(property.property_type)} (${property.ownership_type})</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-icon" onclick="event.stopPropagation(); showPropertyForm(state.properties.find(p => p.id === '${property.id}'))">
+                                 <span data-lucide="pencil" style="width: 16px; height: 16px;"></span>
+                            </button>
+                        </div>
+        
+                        <div class="space-y-2 mb-4" style="font-size: 0.875rem; color: var(--color-text-light);">
+                            <div class="flex-row gap-2" style="align-items: flex-start;">
+                                <span data-lucide="map-pin" style="width: 16px; height: 16px; flex-shrink: 0;"></span>
+                                <span style="color: var(--color-text-dark);">${property.address}, ${property.city}</span>
+                            </div>
+                            <div class="flex-row gap-2" style="align-items: flex-start;">
+                                <span data-lucide="dollar-sign" style="width: 16px; height: 16px; flex-shrink: 0;"></span>
+                                <span>Value: <span style="color: var(--color-text-dark); font-weight: 500;">${value}</span></span>
+                            </div>
+                        </div>
+
+                        <div class="flex-row justify-between">
+                            <div class="badge ${statusBadgeClass}">${formatStatus(property.status)}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPropertiesPage() { /* ... (Unmodified render logic) ... */
+             if (state.currentUser.role !== 'admin' && state.currentUser.role !== 'manager') {
+                 return `<div class="flex-col items-center justify-center py-16 text-center"><h2 class="text-2xl font-bold">Access Restricted</h2><p class="text-slate-600">This page is for managers and admins only.</p></div>`;
+             }
+             const totalValue = state.properties.reduce((sum, p) => sum + (p.current_value || p.purchase_value || 0), 0);
+             const monthlyCost = state.properties.reduce((sum, p) => sum + (p.monthly_cost || 0), 0);
+
+            return `
+                <div class="flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                    <div>
+                        <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">Properties</h1>
+                        <p class="text-slate-600">Manage real estate and facilities (${state.properties.length})</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="showPropertyForm()">
+                        <span data-lucide="plus" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                        Add Property
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="card stat-card" style="border-left: 5px solid var(--color-info);">
+                        <div class="p-6">
+                          <p class="text-sm text-slate-500">Total Properties</p>
+                          <p class="stat-value" style="color: var(--color-info);">${state.properties.length}</p>
+                        </div>
+                    </div>
+                    <div class="card stat-card" style="border-left: 5px solid var(--color-success);">
+                        <div class="p-6">
+                          <p class="text-sm text-slate-500">Total Value</p>
+                          <p class="stat-value" style="color: var(--color-success); font-size: 1.5rem;">${formatCurrency(totalValue)}</p>
+                        </div>
+                    </div>
+                    <div class="card stat-card" style="border-left: 5px solid #a855f7;">
+                        <div class="p-6">
+                          <p class="text-sm text-slate-500">Monthly Cost</p>
+                          <p class="stat-value" style="color: #a855f7; font-size: 1.5rem;">${formatCurrency(monthlyCost)}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="asset-list-grid">
+                    ${state.properties.length === 0 
+                        ? `<p class="p-6 text-center" style="grid-column: 1 / -1; color: var(--color-text-light);">No property records found.</p>` 
+                        : state.properties.map(renderPropertyCard).join('')}
+                </div>
+            `;
+        }
+        
+        function renderVendorCard(vendor) { /* ... (Unmodified render logic) ... */
+            const statusBadgeClass = `badge-vendor-${vendor.status}`;
+            const ratingDisplay = vendor.rating ? `${parseFloat(vendor.rating).toFixed(1)} / 5.0` : 'N/A';
+            
+            return `
+                <div class="card card-list-item flex-col h-full">
+                    <div class="p-6">
+                        <div class="flex-row justify-between mb-4" style="align-items: flex-start;">
+                            <div class="flex-row gap-3">
+                                <div class="asset-card-icon" style="background-color: #f0f4ff;">
+                                    <span data-lucide="truck" style="width: 24px; height: 24px; color: var(--color-primary);"></span>
+                                </div>
+                                <div class="flex-col" style="align-items: flex-start;">
+                                    <h3 style="font-weight: 600; font-size: 1.125rem; margin: 0;">${vendor.vendor_name}</h3>
+                                    <p style="font-size: 0.875rem; color: var(--color-text-light); margin: 0;">${formatStatus(vendor.category)}</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-icon" onclick="event.stopPropagation(); showVendorForm(state.vendors.find(v => v.id === '${vendor.id}'))">
+                                 <span data-lucide="pencil" style="width: 16px; height: 16px;"></span>
+                            </button>
+                        </div>
+        
+                        <div class="space-y-2 mb-4" style="font-size: 0.875rem; color: var(--color-text-light);">
+                            <div class="flex-row gap-2" style="align-items: flex-start;">
+                                <span data-lucide="mail" style="width: 16px; height: 16px; flex-shrink: 0;"></span>
+                                <span style="color: var(--color-text-dark);">${vendor.email}</span>
+                            </div>
+                            ${vendor.phone ? `<div class="flex-row gap-2" style="align-items: flex-start;">
+                                <span data-lucide="phone" style="width: 16px; height: 16px; flex-shrink: 0;"></span>
+                                <span style="color: var(--color-text-dark);">${vendor.phone}</span>
+                            </div>` : ''}
+                            <div class="flex-row gap-2" style="align-items: flex-start; color: #f59e0b; font-weight: 500;">
+                                <span data-lucide="star" style="width: 16px; height: 16px; flex-shrink: 0; fill: currentColor;"></span>
+                                <span>Rating: ${ratingDisplay}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex-row justify-between">
+                            <div class="badge ${statusBadgeClass}">${formatStatus(vendor.status)}</div>
+                            <p style="font-size: 0.8rem; color: var(--color-text-light);">${vendor.contact_person || ''}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderVendorsPage() { /* ... (Unmodified render logic) ... */
+             if (state.currentUser.role !== 'admin' && state.currentUser.role !== 'manager') {
+                 return `<div class="flex-col items-center justify-center py-16 text-center"><h2 class="text-2xl font-bold">Access Restricted</h2><p class="text-slate-600">This page is for managers and admins only.</p></div>`;
+             }
+            return `
+                <div class="flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                    <div>
+                        <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">Vendor Management</h1>
+                        <p class="text-slate-600">Manage suppliers and service providers (${state.vendors.length})</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="showVendorForm()">
+                        <span data-lucide="plus" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                        Add Vendor
+                    </button>
+                </div>
+
+                <div class="asset-list-grid">
+                    ${state.vendors.length === 0 
+                        ? `<p class="p-6 text-center" style="grid-column: 1 / -1; color: var(--color-text-light);">No vendor records found.</p>` 
+                        : state.vendors.map(renderVendorCard).join('')}
+                </div>
+            `;
+        }
+
+        function renderActivityCard(log) { /* ... (Unmodified render logic) ... */
+            const action = ACTIVITY_ACTIONS[log.action] || { icon: 'alert-triangle', color: 'bg-slate-100 text-slate-500' };
+            const timeAgo = formatDistanceToNow(parseISO(log.created_date), { addSuffix: true });
+            const userDisplay = log.user_name || log.created_by;
+
+            return `
+                <div class="p-4 flex items-start gap-4 hover:bg-slate-50 transition-colors">
+                    <div class="mt-1">
+                        <span data-lucide="${action.icon}" class="w-5 h-5 ${action.color}"></span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-slate-800">
+                            <span class="font-semibold">${userDisplay}</span> ${log.details}
+                        </p>
+                        <div class="flex items-center gap-4 text-sm text-slate-500 mt-1">
+                            <div class="badge ${action.color.replace('log-', 'badge-')}" style="text-transform: capitalize;">
+                                ${action.detail}
+                            </div>
+                            <p title="${format(parseISO(log.created_date), 'PPpp')}">
+                                ${timeAgo}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderActivityPage() { /* ... (Unmodified render logic) ... */
+            if (state.currentUser.role !== 'admin') {
+                 return `<div class="flex-col items-center justify-center py-16 text-center"><h2 class="text-2xl font-bold">Access Denied</h2><p class="text-slate-600">You do not have permission to view this audit log.</p></div>`;
+            }
+
+            return `
+                 <div class="flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                    <div>
+                        <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">Activity Log</h1>
+                        <p class="text-slate-600">A complete audit trail of all asset-related activities (${state.activities.length} entries)</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-content p-0">
+                        <div style="border-top: 1px solid var(--color-border); divide-y divide-slate-100;">
+                            ${state.activities.length === 0 
+                                ? `<p class="p-6 text-center text-slate-500">No recent activity found.</p>` 
+                                : state.activities.map(renderActivityCard).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderNotificationCard(notification) { /* ... (Unmodified render logic) ... */
+            const isRead = notification.read;
+            const type = notification.type || 'info';
+            const iconMapping = { 'info': 'info', 'warning': 'alert-triangle', 'success': 'check-circle', 'error': 'x-circle' };
+            const typeColorClass = `notif-${type}`;
+            
+            return `
+                <div class="card ${typeColorClass} ${isRead ? 'opacity-60' : 'border-2'} hover:shadow-lg transition-all" 
+                     onclick="handleNotificationClick({id: '${notification.id}', read: ${isRead}, link: '${notification.link || ''}'})">
+                    <div class="p-4">
+                        <div class="flex-row items-start gap-4">
+                            <div class="mt-1">
+                                <span data-lucide="${iconMapping[type]}" class="w-5 h-5" style="color: ${isRead ? 'var(--color-text-light)' : 'var(--color-' + type + ')'}"></span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex-row items-start justify-between mb-1">
+                                    <h3 class="font-semibold text-slate-900">${notification.title}</h3>
+                                    ${!isRead ? `<div class="badge" style="background-color: var(--color-primary); color: white;">New</div>` : ''}
+                                </div>
+                                <p class="text-sm text-slate-600 mb-2">${notification.message}</p>
+                                <p class="text-xs text-slate-400" title="${format(parseISO(notification.created_date), 'PPpp')}">
+                                    ${formatDistanceToNow(parseISO(notification.created_date), { addSuffix: true })}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderNotificationsPage() { /* ... (Unmodified render logic) ... */
+            const unreadCount = state.notifications.filter(n => !n.read).length;
+            
+            return `
+                 <div class="flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                    <div>
+                        <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">Notifications</h1>
+                        <p class="text-slate-600">
+                             ${unreadCount > 0 ? `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` : 'All caught up!'}
+                        </p>
+                    </div>
+                    ${unreadCount > 0 ? `
+                        <button class="btn btn-outline" onclick="markAllNotificationsAsRead()">
+                            <span data-lucide="check-check" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                            Mark All as Read
+                        </button>
+                    ` : ''}
+                </div>
+
+                <div class="space-y-3">
+                    ${state.notifications.length === 0 ? `
+                        <div class="card">
+                            <div class="p-12 text-center">
+                                <span data-lucide="bell" class="w-16 h-16 text-slate-300 mx-auto mb-4"></span>
+                                <h3 class="text-lg font-semibold text-slate-900 mb-2">No notifications yet</h3>
+                                <p class="text-slate-500">You're all caught up! Notifications will appear here.</p>
+                            </div>
+                        </div>
+                    ` : state.notifications.map(renderNotificationCard).join('')}
+                </div>
+            `;
+        }
+        
+        async function markAllNotificationsAsRead() {
+             // Mock API call to update all notifications (backend will handle the logic)
+             try {
+                 await fetchApi('notifications/mark_all_read', 'PUT');
+                 await loadAllData();
+                 showMessage("All notifications marked as read.");
+             } catch (e) {
+                 console.error("Failed to mark all notifications as read", e);
+                 showMessage("Failed to mark all as read.", true);
+             }
+         }
+         
+        function handleNotificationClick(notification) {
+             if (!notification.read) {
+                 // Mock API call to update single notification
+                 fetchApi(`notifications/${notification.id}`, 'PUT', { read: true }).then(loadAllData).catch(e => console.error(e));
+             }
+             // Simple page navigation based on link
+             if (notification.link) {
+                  setState({ currentPage: notification.link.toLowerCase() });
+             }
+         }
+
+        function renderReportsPage() { /* ... (Unmodified render logic) ... */
+             if (state.currentUser.role !== 'admin' && state.currentUser.role !== 'manager') {
+                 return `<div class="flex-col items-center justify-center py-16 text-center"><h2 class="text-2xl font-bold">Access Restricted</h2><p class="text-slate-600">This page is for managers and admins only.</p></div>`;
+             }
+
+             const totalAssetValue = state.assets.reduce((sum, a) => sum + (a.current_value || a.purchase_value || 0), 0);
+             const maintenanceCosts = state.maintenances.reduce((sum, m) => sum + (m.cost || 0), 0);
+             const procurementCosts = state.procurements.filter(p => p.status === 'admin_approved').reduce((sum, p) => sum + (p.total_cost || 0), 0);
+
+             const assetsByCategory = state.assets.reduce((acc, asset) => {
+                acc[asset.category] = (acc[asset.category] || 0) + 1;
+                return acc;
+             }, {});
+             const categoryData = Object.entries(assetsByCategory).map(([name, value]) => ({
+                name: ASSET_CATEGORIES[name] || formatStatus(name),
+                value: value
+             }));
+
+             const statusData = [
+                  { status: 'Active', count: state.assets.filter(a => a.status === 'active').length },
+                  { status: 'Maintenance', count: state.assets.filter(a => a.status === 'in_maintenance').length },
+                  { status: 'Storage', count: state.assets.filter(a => a.status === 'in_storage').length },
+                  { status: 'Retired', count: state.assets.filter(a => a.status === 'retired').length },
+             ];
+
+             setTimeout(() => {
+                const ctx = document.getElementById('reportStatusChart');
+                if (!ctx) return;
+                
+                if (reportChartInstance) { reportChartInstance.destroy(); }
+                
+                reportChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: statusData.map(d => d.status),
+                        datasets: [{
+                            label: 'Asset Count',
+                            data: statusData.map(d => d.count),
+                            backgroundColor: '#4f46e5',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                         responsive: true, maintainAspectRatio: false,
+                         scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                    }
+                });
+             }, 0);
+
+            return `
+                 <div class="flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                    <div>
+                        <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">Reports & Analytics</h1>
+                        <p class="text-slate-600">Comprehensive insights into your asset management</p>
+                    </div>
+                    <button class="btn btn-outline" onclick="exportReport()">
+                        <span data-lucide="download" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                        Export Report (JSON)
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="card stat-card" style="border-left: 5px solid var(--color-primary);">
+                        <div class="p-6">
+                          <p class="text-sm text-slate-500">Total Assets</p>
+                          <p class="stat-value" style="color: var(--color-primary);">${state.assets.length}</p>
+                        </div>
+                    </div>
+                    <div class="card stat-card" style="border-left: 5px solid var(--color-success);">
+                        <div class="p-6">
+                          <p class="text-sm text-slate-500">Total Value</p>
+                          <p class="stat-value" style="color: var(--color-success); font-size: 1.5rem;">${formatCurrency(totalAssetValue)}</p>
+                        </div>
+                    </div>
+                    <div class="card stat-card" style="border-left: 5px solid #a855f7;">
+                        <div class="p-6">
+                          <p class="text-sm text-slate-500">Maintenance Cost</p>
+                          <p class="stat-value" style="color: #a855f7; font-size: 1.5rem;">${formatCurrency(maintenanceCosts)}</p>
+                        </div>
+                    </div>
+                    <div class="card stat-card" style="border-left: 5px solid var(--color-info);">
+                        <div class="p-6">
+                          <p class="text-sm text-slate-500">Procurement Cost</p>
+                          <p class="stat-value" style="color: var(--color-info); font-size: 1.5rem;">${formatCurrency(procurementCosts)}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-6">
+                     ${renderCategoryChart(state.assets)}
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Asset Status Distribution</h3>
+                        </div>
+                        <div class="card-content pt-6" style="height: 300px;">
+                            <canvas id="reportStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        window.exportReport = function() { /* ... (Unmodified logic) ... */
+            const reportData = {
+              generated_at: new Date().toISOString(),
+              summary: {
+                total_assets: state.assets.length,
+                total_value: state.assets.reduce((sum, a) => sum + (a.current_value || a.purchase_value || 0), 0),
+                maintenance_costs: state.maintenances.reduce((sum, m) => sum + (m.cost || 0), 0),
+                procurement_costs: state.procurements.filter(p => p.status === 'admin_approved').reduce((sum, p) => sum + (p.total_cost || 0), 0)
+              },
+              assets: state.assets.map(a => ({
+                name: a.name,
+                category: a.category,
+                value: a.current_value || a.purchase_value,
+                status: a.status,
+                assigned_to: a.assigned_to_email
+              }))
+            };
+
+            const jsonString = JSON.stringify(reportData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `asset-report-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            showMessage("Report exported successfully as JSON!");
+        }
+
+        function renderSettingsPage() {
+             const user = state.currentUser;
+             const isSaving = false; // Mock saving state since actual saving is handled by function call
+
+             return `
+                 <div class="max-w-4xl mx-auto">
+                    <div class="flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                        <div>
+                            <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">Settings</h1>
+                            <p class="text-slate-600">Manage your profile and preferences</p>
+                        </div>
+                    </div>
+                     
+                     <div class="card mb-6">
+                        <div class="card-header"><h3 class="card-title">Profile Information</h3></div>
+                        <div class="card-content space-y-4">
+                           <form id="settings-form">
+                                <div class="space-y-2">
+                                    <label class="label">Full Name</label>
+                                    <input value="${user.full_name || ''}" disabled class="input" style="background-color: var(--color-bg-light);" />
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="label">Email</label>
+                                    <input value="${user.email || ''}" disabled class="input" style="background-color: var(--color-bg-light);" />
+                                    <input type="hidden" name="email" value="${user.email || ''}">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="label">Role</label>
+                                    <input value="${user.role || ''}" disabled class="input" style="background-color: var(--color-bg-light); text-transform: capitalize;" />
+                                    <input type="hidden" name="role" value="${user.role || ''}">
+                                </div>
+                                <div class="space-y-2">
+                                    <label for="department" class="label">Department</label>
+                                    <input id="department" name="department" class="input" value="${user.department || ''}" placeholder="e.g., IT, Finance, Operations"/>
+                                </div>
+                                <div class="space-y-2">
+                                    <label for="phone" class="label">Phone</label>
+                                    <input id="phone" name="phone" class="input" value="${user.phone || ''}" placeholder="e.g., +91 98765 43210"/>
+                                </div>
+                                <div class="space-y-2">
+                                    <label for="employee_id" class="label">Employee ID</label>
+                                    <input id="employee_id" name="employee_id" class="input" value="${user.employee_id || ''}" placeholder="e.g., EMP001"/>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary" onclick="event.preventDefault(); window.handleSaveSettings(getFormData('settings-form'))" ${isSaving ? 'disabled' : ''}>
+                                    <span data-lucide="save" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                    ${isSaving ? "Saving..." : "Save Changes"}
+                                </button>
+                            </form>
+                        </div>
+                     </div>
+
+                     ${user.role === 'admin' ? `
+                         <div class="card" style="border-color: #fcd34d; background-color: #fffbeb;">
+                            <div class="p-6 flex items-start gap-4">
+                                <span data-lucide="alert-triangle" class="w-6 h-6 text-amber-600 flex-shrink-0 mt-1"></span>
+                                <div>
+                                    <h3 class="font-semibold text-amber-900 mb-2">Admin Access</h3>
+                                    <p class="text-sm text-amber-800">
+                                        As an administrator, you have full access to all system features including user management, 
+                                        activity logs, and system-wide settings. Use these privileges responsibly.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                     ` : ''}
+                 </div>
+             `;
+        }
+        
+        function renderUserManagementPage() {
+             if (state.currentUser.role !== 'admin') {
+                 return `<div class="flex-col items-center justify-center py-16 text-center"><h2 class="text-2xl font-bold">Access Denied</h2><p class="text-slate-600">Only administrators can access user management.</p></div>`;
+             }
+             
+             const stats = {
+                total: state.users.length,
+                admins: state.users.filter(u => u.role === 'admin').length,
+                managers: state.users.filter(u => u.role === 'manager').length,
+                users: state.users.filter(u => u.role === 'user').length
+             };
+
+             const roleColors = {
+                  admin: "badge-role-admin", manager: "badge-role-manager", user: "badge-role-user"
+             };
+
+             return `
+                 <div class="max-w-7xl mx-auto">
+                    <div class="flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                        <div>
+                            <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">User Management</h1>
+                            <p class="text-slate-600">Manage users, roles, and permissions</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                         <div class="card stat-card" style="border-left: 5px solid var(--color-primary);">
+                             <div class="p-6"><p class="text-sm text-slate-500">Total Users</p><p class="stat-value" style="color: var(--color-primary);">${stats.total}</p></div>
+                         </div>
+                         <div class="card stat-card" style="border-left: 5px solid var(--color-danger);">
+                             <div class="p-6"><p class="text-sm text-slate-500">Admins</p><p class="stat-value" style="color: var(--color-danger);">${stats.admins}</p></div>
+                         </div>
+                         <div class="card stat-card" style="border-left: 5px solid var(--color-info);">
+                             <div class="p-6"><p class="text-sm text-slate-500">Managers</p><p class="stat-value" style="color: var(--color-info);">${stats.managers}</p></div>
+                         </div>
+                         <div class="card stat-card" style="border-left: 5px solid var(--color-success);">
+                             <div class="p-6"><p class="text-sm text-slate-500">Users</p><p class="stat-value" style="color: var(--color-success);">${stats.users}</p></div>
+                         </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-content p-0">
+                            <div style="divide-y divide-slate-100;">
+                                ${state.users.map((user, index) => `
+                                    <div class="p-4 hover:bg-slate-50 transition-colors">
+                                        <div class="flex-row justify-between" style="align-items: center;">
+                                            <div class="flex-row gap-4">
+                                                <div class="w-12 h-12 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-full flex items-center justify-center">
+                                                    <span class="text-indigo-700 font-semibold">
+                                                        ${user.full_name?.charAt(0).toUpperCase() || 'U'}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <h3 class="font-semibold text-slate-900">${user.full_name || 'N/A'}</h3>
+                                                    <p class="text-sm text-slate-500">${user.email}</p>
+                                                    ${user.department ? `<p class="text-xs text-slate-400 mt-1">${user.department}</p>` : ''}
+                                                </div>
+                                            </div>
+
+                                            <div class="flex-row gap-4">
+                                                <div class="badge ${roleColors[user.role] || 'badge-role-user'} border">
+                                                    ${user.role}
+                                                </div>
+                                                <p class="text-xs text-slate-400">
+                                                    Joined ${user.created_date ? format(parseISO(user.created_date), "MMM yyyy") : 'N/A'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+             `;
+        }
+
+        function renderConfirmModal() { /* ... (Unmodified render logic) ... */
+            if (!state.showConfirmModal || !state.confirmAction) return '';
+            const { docName } = state.confirmAction;
+            
+            return `
+                 <div class="modal-overlay" onclick="handleCancelConfirm()">
+                     <div class="modal-content confirm-modal-content" onclick="event.stopPropagation()">
+                         <div class="card-header" style="border: none;">
+                             <h3 class="card-title" style="color: var(--color-danger);">Are you absolutely sure?</h3>
+                         </div>
+                         <div class="card-content">
+                            <p class="text-slate-600 mb-4">
+                                This action cannot be undone. This will permanently delete the record 
+                                <span style="font-weight: bold; color: var(--color-text-dark);">${docName}</span> and remove its data.
+                            </p>
+                         </div>
+                         <div class="card-footer flex-row justify-end gap-4">
+                             <button type="button" class="btn btn-outline" onclick="handleCancelConfirm()">Cancel</button>
+                             <button type="button" class="btn btn-destructive" onclick="handleConfirmDelete()">
+                                 Yes, Delete
+                             </button>
+                         </div>
+                     </div>
+                 </div>
+             `;
+        }
+        
+        function renderAssetFormModal() { /* ... (Unmodified render logic) ... */
+             if (!state.showAssetModal) return '';
+             const asset = state.editingAsset;
+             const isEdit = !!asset.id;
+             
+             const assignedToInput = state.currentUser.role === 'admin' ? `
+                 <select id="assigned_to_email" name="assigned_to_email" class="select-trigger input">
+                     ${state.users.map(u => `<option value="${u.email}" ${asset.assigned_to_email === u.email ? 'selected' : ''}>${u.full_name} (${u.email})</option>`).join('')}
+                 </select>
+             ` : `
+                 <input id="assigned_to_email" name="assigned_to_email" class="input" value="${asset.assigned_to_email || ''}" readonly style="background-color: var(--color-bg-light);" />
+                 <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.25rem;">Only admins/managers can change assignment.</p>
+             `;
+
+             return `
+                <div class="modal-overlay" onclick="setState({ showAssetModal: false, editingAsset: null })">
+                    <div class="modal-content" onclick="event.stopPropagation()">
+                        <form id="asset-form">
+                            <div class="card-header">
+                                <h3 class="card-title">${isEdit ? 'Edit Asset' : 'Add New Asset'}</h3>
+                                <button type="button" class="btn btn-icon" onclick="setState({ showAssetModal: false, editingAsset: null })">
+                                    <span data-lucide="x" style="width: 20px; height: 20px;"></span>
+                                </button>
+                            </div>
+                            <div class="card-content" style="padding: 1.5rem 1.5rem 0;">
+                                <div class="form-grid">
+                                    <div class="flex-col">
+                                        <label for="name" class="label">Asset Name *</label>
+                                        <input id="name" name="name" class="input" value="${asset.name || ''}" placeholder="e.g., MacBook Pro 16" required />
+                                    </div>
+                                    <div class="flex-col">
+                                        <label for="asset_id" class="label">Asset ID</label>
+                                        <input id="asset_id" name="asset_id" class="input" value="${asset.asset_id || ''}" placeholder="e.g., AST-2024-001" />
+                                    </div>
+                                    
+                                    <div class="flex-col">
+                                        <label for="category" class="label">Category *</label>
+                                        <select id="category" name="category" class="select-trigger input">
+                                            ${CATEGORIES.map(c => `<option value="${c.value}" ${asset.category === c.value ? 'selected' : ''}>${c.label}</option>`).join('')}
+                                        </select>
+                                    </div>
+                                    <div class="flex-col">
+                                        <label for="status" class="label">Status *</label>
+                                        <select id="status" name="status" class="select-trigger input">
+                                            ${ASSET_STATUSES.map(s => `<option value="${s.value}" ${asset.status === s.value ? 'selected' : ''}>${s.label}</option>`).join('')}
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="flex-col">
+                                        <label for="manufacturer" class="label">Manufacturer/Brand</label>
+                                        <input id="manufacturer" name="manufacturer" class="input" value="${asset.manufacturer || ''}" placeholder="e.g., Apple, Dell" />
+                                    </div>
+                                    <div class="flex-col">
+                                        <label for="serial_number" class="label">Serial Number</label>
+                                        <input id="serial_number" name="serial_number" class="input" value="${asset.serial_number || ''}" placeholder="e.g., SN123456789" />
+                                    </div>
+                                    
+                                    <div class="flex-col">
+                                        <label for="purchase_date" class="label">Purchase Date</label>
+                                        <input id="purchase_date" name="purchase_date" class="input" type="date" value="${asset.purchase_date || ''}" />
+                                    </div>
+                                    <div class="flex-col">
+                                        <label for="warranty_expiry" class="label">Warranty Expiry</label>
+                                        <input id="warranty_expiry" name="warranty_expiry" class="input" type="date" value="${asset.warranty_expiry || ''}" />
+                                    </div>
+                                    
+                                    <div class="flex-col">
+                                        <label for="purchase_value" class="label">Purchase Value (₹)</label>
+                                        <input id="purchase_value" name="purchase_value" class="input" type="number" step="0.01" value="${asset.purchase_value || ''}" placeholder="0.00" />
+                                    </div>
+                                    <div class="flex-col">
+                                        <label for="current_value" class="label">Current Value (₹)</label>
+                                        <input id="current_value" name="current_value" class="input" type="number" step="0.01" value="${asset.current_value || ''}" placeholder="0.00" />
+                                    </div>
+                                    
+                                    <div class="flex-col">
+                                        <label for="assigned_to_email" class="label">Assigned To</label>
+                                        ${assignedToInput}
+                                    </div>
+                                    <div class="flex-col">
+                                        <label for="location" class="label">Location</label>
+                                        <input id="location" name="location" class="input" value="${asset.location || ''}" placeholder="Office, warehouse, etc." />
+                                    </div>
+                                    
+                                    <div class="flex-col" style="grid-column: 1 / -1;">
+                                        <label for="notes" class="label">Notes</label>
+                                        <textarea id="notes" name="notes" class="textarea" rows="3" placeholder="Additional information about this asset">${asset.notes || ''}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer flex-row justify-between">
+                                ${isEdit ? `
+                                    <button type="button" class="btn btn-destructive" onclick="deleteAsset(state.editingAsset)">
+                                        <span data-lucide="trash-2" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                        Delete
+                                    </button>
+                                ` : '<div></div>'}
+                                <div class="flex-row gap-4">
+                                    <button type="button" class="btn btn-outline" onclick="setState({ showAssetModal: false, editingAsset: null })">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" onclick="event.preventDefault(); saveDocument('assets', getFormData('asset-form'), state.editingAsset)">
+                                        <span data-lucide="save" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                        ${isEdit ? 'Save Changes' : 'Save Asset'}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderLoanFormModal() { /* ... (Unmodified render logic) ... */
+             if (!state.showLoanModal) return '';
+             const loan = state.editingLoan;
+             const isEdit = !!loan.id;
+
+             return `
+                 <div class="modal-overlay" onclick="setState({ showLoanModal: false, editingLoan: null })">
+                     <div class="modal-content" style="max-width: 500px;" onclick="event.stopPropagation()">
+                         <form id="loan-form">
+                             <div class="card-header">
+                                 <h3 class="card-title">${isEdit ? 'Edit Loan' : 'New Asset Loan'}</h3>
+                                 <button type="button" class="btn btn-icon" onclick="setState({ showLoanModal: false, editingLoan: null })">
+                                     <span data-lucide="x" style="width: 20px; height: 20px;"></span>
+                                 </button>
+                             </div>
+                             <div class="card-content space-y-4">
+                                 <div class="flex-col">
+                                     <label for="asset_id" class="label">Select Asset *</label>
+                                     <select id="asset_id" name="asset_id" class="select-trigger input" required onchange="
+                                        const asset = state.assets.find(a => a.id === this.value);
+                                        state.editingLoan.asset_name = asset ? asset.name : '';
+                                     ">
+                                         <option value="">Choose an asset</option>
+                                         ${state.assets.filter(a => a.status === 'active').map(asset => `
+                                             <option value="${asset.id}" ${loan.asset_id === asset.id ? 'selected' : ''}>
+                                                 ${asset.name} (${asset.asset_id})
+                                             </option>
+                                         `).join('')}
+                                     </select>
+                                     <input type="hidden" name="asset_name" value="${loan.asset_name || ''}" />
+                                 </div>
+
+                                 <div class="form-grid" style="gap: 1rem;">
+                                    <div class="flex-col">
+                                         <label for="borrower_name" class="label">Borrower Name *</label>
+                                         <input id="borrower_name" name="borrower_name" class="input" value="${loan.borrower_name || ''}" required />
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="borrower_email" class="label">Borrower Email *</label>
+                                         <input id="borrower_email" name="borrower_email" class="input" type="email" value="${loan.borrower_email || ''}" required />
+                                     </div>
+                                </div>
+                                
+                                 <div class="form-grid" style="gap: 1rem;">
+                                     <div class="flex-col">
+                                         <label for="loan_date" class="label">Loan Date *</label>
+                                         <input id="loan_date" name="loan_date" class="input" type="date" value="${loan.loan_date || ''}" required />
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="expected_return_date" class="label">Expected Return Date *</label>
+                                         <input id="expected_return_date" name="expected_return_date" class="input" type="date" value="${loan.expected_return_date || ''}" required />
+                                     </div>
+                                 </div>
+
+                                 <div class="flex-col">
+                                     <label for="purpose" class="label">Purpose *</label>
+                                     <input id="purpose" name="purpose" class="input" value="${loan.purpose || ''}" placeholder="Reason for borrowing this asset" required />
+                                 </div>
+
+                                 <div class="flex-col">
+                                     <label for="condition_at_loan" class="label">Condition at Loan</label>
+                                     <select id="condition_at_loan" name="condition_at_loan" class="select-trigger input">
+                                         <option value="excellent" ${loan.condition_at_loan === 'excellent' ? 'selected' : ''}>Excellent</option>
+                                         <option value="good" ${loan.condition_at_loan === 'good' ? 'selected' : ''}>Good</option>
+                                         <option value="fair" ${loan.condition_at_loan === 'fair' ? 'selected' : ''}>Fair</option>
+                                         <option value="poor" ${loan.condition_at_loan === 'poor' ? 'selected' : ''}>Poor</option>
+                                     </select>
+                                 </div>
+
+                                 <div class="flex-col">
+                                     <label for="notes" class="label">Notes</label>
+                                     <textarea id="notes" name="notes" class="textarea" rows="2">${loan.notes || ''}</textarea>
+                                 </div>
+                             </div>
+
+                             <div class="card-footer flex-row justify-end gap-4">
+                                 <button type="button" class="btn btn-outline" onclick="setState({ showLoanModal: false, editingLoan: null })">Cancel</button>
+                                 <button type="submit" class="btn btn-primary" onclick="event.preventDefault(); saveDocument('loans', getFormData('loan-form'), state.editingLoan)">
+                                     <span data-lucide="save" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                     ${isEdit ? 'Save Changes' : 'Create Loan'}
+                                 </button>
+                             </div>
+                         </form>
+                     </div>
+                 </div>
+             `;
+        }
+
+        function renderMaintenanceFormModal() { /* ... (Unmodified render logic) ... */
+             if (!state.showMaintenanceModal) return '';
+             const request = state.editingMaintenance;
+             const isEdit = !!request.id;
+
+             return `
+                 <div class="modal-overlay" onclick="setState({ showMaintenanceModal: false, editingMaintenance: null })">
+                     <div class="modal-content" style="max-width: 500px;" onclick="event.stopPropagation()">
+                         <form id="maintenance-form">
+                             <div class="card-header">
+                                 <h3 class="card-title">${isEdit ? 'Edit Request' : 'New Maintenance Request'}</h3>
+                                 <button type="button" class="btn btn-icon" onclick="setState({ showMaintenanceModal: false, editingMaintenance: null })">
+                                     <span data-lucide="x" style="width: 20px; height: 20px;"></span>
+                                 </button>
+                             </div>
+                             <div class="card-content space-y-4">
+                                 <div class="flex-col">
+                                     <label for="asset_id" class="label">Select Asset *</label>
+                                     <select id="asset_id" name="asset_id" class="select-trigger input" required onchange="
+                                        const asset = state.assets.find(a => a.id === this.value);
+                                        state.editingMaintenance.asset_name = asset ? asset.name : '';
+                                     ">
+                                         <option value="">Choose an asset</option>
+                                         ${state.assets.map(asset => `
+                                             <option value="${asset.id}" ${request.asset_id === asset.id ? 'selected' : ''}>
+                                                 ${asset.name} (${asset.asset_id})
+                                             </option>
+                                         `).join('')}
+                                     </select>
+                                     <input type="hidden" name="asset_name" value="${request.asset_name || ''}" />
+                                 </div>
+
+                                 <div class="flex-col">
+                                     <label for="title" class="label">Issue Title *</label>
+                                     <input id="title" name="title" class="input" value="${request.title || ''}" placeholder="Brief description of the issue" required />
+                                 </div>
+
+                                 <div class="flex-col">
+                                     <label for="description" class="label">Description *</label>
+                                     <textarea id="description" name="description" class="textarea" rows="4" placeholder="Detailed description of the maintenance needed" required>${request.description || ''}</textarea>
+                                 </div>
+                                 
+                                 <div class="form-grid" style="gap: 1rem;">
+                                     <div class="flex-col">
+                                         <label for="priority" class="label">Priority</label>
+                                         <select id="priority" name="priority" class="select-trigger input">
+                                             ${MAINTENANCE_PRIORITIES.map(p => `<option value="${p}" ${request.priority === p ? 'selected' : ''}>${p.charAt(0).toUpperCase() + p.slice(1)}</option>`).join('')}
+                                         </select>
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="scheduled_date" class="label">Scheduled Date</label>
+                                         <input id="scheduled_date" name="scheduled_date" class="input" type="date" value="${request.scheduled_date || ''}" />
+                                     </div>
+                                 </div>
+                                 
+                                 <div class="flex-col">
+                                     <label for="notes" class="label">Additional Notes</label>
+                                     <textarea id="notes" name="notes" class="textarea" rows="2">${request.notes || ''}</textarea>
+                                 </div>
+                             </div>
+
+                             <div class="card-footer flex-row justify-end gap-4">
+                                 <button type="button" class="btn btn-outline" onclick="setState({ showMaintenanceModal: false, editingMaintenance: null })">Cancel</button>
+                                 <button type="submit" class="btn btn-primary" onclick="event.preventDefault(); saveDocument('maintenances', getFormData('maintenance-form'), state.editingMaintenance)">
+                                     <span data-lucide="save" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                     Submit Request
+                                 </button>
+                             </div>
+                         </form>
+                     </div>
+                 </div>
+             `;
+        }
+
+        function renderProcurementFormModal() { /* ... (Unmodified render logic) ... */
+             if (!state.showProcurementModal) return '';
+             const request = state.editingProcurement;
+             const isEdit = !!request.id;
+             
+             // Calculate total cost dynamically for form display
+             const currentTotalCost = (parseFloat(request.estimated_cost) * parseInt(request.quantity)) || 0;
+
+             return `
+                 <div class="modal-overlay" onclick="setState({ showProcurementModal: false, editingProcurement: null })">
+                     <div class="modal-content" style="max-width: 500px;" onclick="event.stopPropagation()">
+                         <form id="procurement-form">
+                             <div class="card-header">
+                                 <h3 class="card-title">${isEdit ? 'Edit Request' : 'New Procurement Request'}</h3>
+                                 <button type="button" class="btn btn-icon" onclick="setState({ showProcurementModal: false, editingProcurement: null })">
+                                     <span data-lucide="x" style="width: 20px; height: 20px;"></span>
+                                 </button>
+                             </div>
+                             <div class="card-content space-y-4">
+                                 <div class="flex-col">
+                                     <label for="item_name" class="label">Item Name *</label>
+                                     <input id="item_name" name="item_name" class="input" value="${request.item_name || ''}" placeholder="e.g., Dell Laptop" required />
+                                 </div>
+
+                                 <div class="form-grid" style="gap: 1rem;">
+                                     <div class="flex-col">
+                                         <label for="category" class="label">Category *</label>
+                                         <select id="category" name="category" class="select-trigger input">
+                                             ${CATEGORIES.map(c => `<option value="${c.value}" ${request.category === c.value ? 'selected' : ''}>${c.label}</option>`).join('')}
+                                         </select>
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="quantity" class="label">Quantity *</label>
+                                         <input id="quantity" name="quantity" class="input" type="number" min="1" value="${request.quantity || 1}" required 
+                                                oninput="
+                                                     state.editingProcurement.quantity = this.value; 
+                                                     state.editingProcurement.estimated_cost = state.editingProcurement.estimated_cost || 0;
+                                                     state.editingProcurement.total_cost = (parseFloat(state.editingProcurement.estimated_cost) * parseInt(this.value)) || 0;
+                                                     render(); 
+                                                "/>
+                                     </div>
+                                 </div>
+                                 
+                                 <div class="form-grid" style="gap: 1rem;">
+                                     <div class="flex-col">
+                                         <label for="estimated_cost" class="label">Estimated Cost per Item (₹) *</label>
+                                         <input id="estimated_cost" name="estimated_cost" class="input" type="number" step="0.01" value="${request.estimated_cost || ''}" required 
+                                                oninput="
+                                                     state.editingProcurement.estimated_cost = this.value; 
+                                                     state.editingProcurement.quantity = state.editingProcurement.quantity || 1;
+                                                     state.editingProcurement.total_cost = (parseFloat(this.value) * parseInt(state.editingProcurement.quantity)) || 0;
+                                                     render();
+                                                "/>
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="total_cost_display" class="label">Total Cost (₹)</label>
+                                         <input id="total_cost_display" name="total_cost_display" class="input" value="${formatCurrency(currentTotalCost).replace('₹', '')}" readonly style="background-color: #f0f0f0;" />
+                                         <input type="hidden" name="total_cost" value="${currentTotalCost}" />
+                                     </div>
+                                 </div>
+
+                                 <div class="flex-col">
+                                     <label for="urgency" class="label">Urgency</label>
+                                     <select id="urgency" name="urgency" class="select-trigger input">
+                                         ${PROCUREMENT_URGENCIES.map(u => `<option value="${u}" ${request.urgency === u ? 'selected' : ''}>${u.charAt(0).toUpperCase() + u.slice(1)}</option>`).join('')}
+                                     </select>
+                                 </div>
+
+                                 <div class="flex-col">
+                                     <label for="justification" class="label">Business Justification *</label>
+                                     <textarea id="justification" name="justification" class="textarea" rows="4" placeholder="Explain why this purchase is necessary" required>${request.justification || ''}</textarea>
+                                 </div>
+                             </div>
+
+                             <div class="card-footer flex-row justify-end gap-4">
+                                 <button type="button" class="btn btn-outline" onclick="setState({ showProcurementModal: false, editingProcurement: null })">Cancel</button>
+                                 <button type="submit" class="btn btn-primary" onclick="event.preventDefault(); saveDocument('procurements', getFormData('procurement-form'), state.editingProcurement)">
+                                     <span data-lucide="save" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                     Submit Request
+                                 </button>
+                             </div>
+                         </form>
+                     </div>
+                 </div>
+             `;
+        }
+        
+        function renderPropertyFormModal() { /* ... (Unmodified render logic) ... */
+             if (!state.showPropertyModal) return '';
+             const property = state.editingProperty;
+             const isEdit = !!property.id;
+
+             return `
+                 <div class="modal-overlay" onclick="setState({ showPropertyModal: false, editingProperty: null })">
+                     <div class="modal-content" onclick="event.stopPropagation()">
+                         <form id="property-form">
+                             <div class="card-header">
+                                 <h3 class="card-title">${isEdit ? 'Edit Property' : 'Add New Property'}</h3>
+                                 <button type="button" class="btn btn-icon" onclick="setState({ showPropertyModal: false, editingProperty: null })">
+                                     <span data-lucide="x" style="width: 20px; height: 20px;"></span>
+                                 </button>
+                             </div>
+                             <div class="card-content space-y-4">
+                                 <div class="form-grid">
+                                     <div class="flex-col">
+                                         <label for="property_name" class="label">Property Name *</label>
+                                         <input id="property_name" name="property_name" class="input" value="${property.property_name || ''}" required />
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="property_type" class="label">Type *</label>
+                                         <select id="property_type" name="property_type" class="select-trigger input">
+                                             ${PROPERTY_TYPES.map(t => `<option value="${t}" ${property.property_type === t ? 'selected' : ''}>${formatStatus(t)}</option>`).join('')}
+                                         </select>
+                                     </div>
+                                 </div>
+
+                                 <div class="flex-col">
+                                     <label for="address" class="label">Address *</label>
+                                     <input id="address" name="address" class="input" value="${property.address || ''}" required />
+                                 </div>
+
+                                 <div class="form-grid">
+                                     <div class="flex-col">
+                                         <label for="city" class="label">City</label>
+                                         <input id="city" name="city" class="input" value="${property.city || ''}" />
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="state" class="label">State</label>
+                                         <input id="state" name="state" class="input" value="${property.state || ''}" />
+                                     </div>
+                                 </div>
+                                 
+                                 <div class="form-grid">
+                                     <div class="flex-col">
+                                         <label for="size_sqft" class="label">Size (sq ft)</label>
+                                         <input id="size_sqft" name="size_sqft" class="input" type="number" value="${property.size_sqft || ''}" />
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="ownership_type" class="label">Ownership</label>
+                                         <select id="ownership_type" name="ownership_type" class="select-trigger input">
+                                             ${PROPERTY_OWNERSHIP.map(o => `<option value="${o}" ${property.ownership_type === o ? 'selected' : ''}>${o.charAt(0).toUpperCase() + o.slice(1)}</option>`).join('')}
+                                         </select>
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="status" class="label">Status</label>
+                                         <select id="status" name="status" class="select-trigger input">
+                                             ${PROPERTY_STATUSES.map(s => `<option value="${s}" ${property.status === s ? 'selected' : ''}>${formatStatus(s)}</option>`).join('')}
+                                         </select>
+                                     </div>
+                                 </div>
+
+                                 <div class="form-grid">
+                                     <div class="flex-col">
+                                         <label for="purchase_value" class="label">Purchase Value (₹)</label>
+                                         <input id="purchase_value" name="purchase_value" class="input" type="number" step="0.01" value="${property.purchase_value || ''}" />
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="current_value" class="label">Current Value (₹)</label>
+                                         <input id="current_value" name="current_value" class="input" type="number" step="0.01" value="${property.current_value || ''}" />
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="monthly_cost" class="label">Monthly Cost (₹)</label>
+                                         <input id="monthly_cost" name="monthly_cost" class="input" type="number" step="0.01" value="${property.monthly_cost || ''}" />
+                                     </div>
+                                 </div>
+                                 
+                                 <div class="flex-col">
+                                     <label for="notes" class="label">Notes</label>
+                                     <textarea id="notes" name="notes" class="textarea" rows="2">${property.notes || ''}</textarea>
+                                 </div>
+                             </div>
+
+                             <div class="card-footer flex-row justify-between">
+                                 ${isEdit ? `
+                                    <button type="button" class="btn btn-destructive" onclick="deleteProperty(state.editingProperty)">
+                                        <span data-lucide="trash-2" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                        Delete
+                                    </button>
+                                 ` : '<div></div>'}
+                                 <div class="flex-row gap-4">
+                                     <button type="button" class="btn btn-outline" onclick="setState({ showPropertyModal: false, editingProperty: null })">Cancel</button>
+                                     <button type="submit" class="btn btn-primary" onclick="event.preventDefault(); saveDocument('properties', getFormData('property-form'), state.editingProperty)">
+                                         <span data-lucide="save" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                         ${isEdit ? 'Save Changes' : 'Save Property'}
+                                     </button>
+                                 </div>
+                             </div>
+                         </form>
+                     </div>
+                 </div>
+             `;
+        }
+
+        function renderVendorFormModal() { /* ... (Unmodified render logic) ... */
+             if (!state.showVendorModal) return '';
+             const vendor = state.editingVendor;
+             const isEdit = !!vendor.id;
+
+             return `
+                 <div class="modal-overlay" onclick="setState({ showVendorModal: false, editingVendor: null })">
+                     <div class="modal-content" style="max-width: 500px;" onclick="event.stopPropagation()">
+                         <form id="vendor-form">
+                             <div class="card-header">
+                                 <h3 class="card-title">${isEdit ? 'Edit Vendor' : 'Add New Vendor'}</h3>
+                                 <button type="button" class="btn btn-icon" onclick="setState({ showVendorModal: false, editingVendor: null })">
+                                     <span data-lucide="x" style="width: 20px; height: 20px;"></span>
+                                 </button>
+                             </div>
+                             <div class="card-content space-y-4">
+                                 <div class="form-grid">
+                                     <div class="flex-col">
+                                         <label for="vendor_name" class="label">Vendor Name *</label>
+                                         <input id="vendor_name" name="vendor_name" class="input" value="${vendor.vendor_name || ''}" required />
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="contact_person" class="label">Contact Person</label>
+                                         <input id="contact_person" name="contact_person" class="input" value="${vendor.contact_person || ''}" />
+                                     </div>
+                                 </div>
+
+                                 <div class="form-grid">
+                                     <div class="flex-col">
+                                         <label for="email" class="label">Email *</label>
+                                         <input id="email" name="email" class="input" type="email" value="${vendor.email || ''}" required />
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="phone" class="label">Phone</label>
+                                         <input id="phone" name="phone" class="input" value="${vendor.phone || ''}" />
+                                     </div>
+                                 </div>
+
+                                 <div class="flex-col">
+                                     <label for="address" class="label">Address</label>
+                                     <input id="address" name="address" class="input" value="${vendor.address || ''}" />
+                                 </div>
+
+                                 <div class="form-grid">
+                                     <div class="flex-col">
+                                         <label for="category" class="label">Category</label>
+                                         <select id="category" name="category" class="select-trigger input">
+                                             ${VENDOR_CATEGORIES.map(c => `<option value="${c}" ${vendor.category === c ? 'selected' : ''}>${formatStatus(c)}</option>`).join('')}
+                                         </select>
+                                     </div>
+                                     <div class="flex-col">
+                                         <label for="rating" class="label">Rating (1-5)</label>
+                                         <input id="rating" name="rating" class="input" type="number" min="1" max="5" step="0.1" value="${vendor.rating || 3}" />
+                                     </div>
+                                 </div>
+                                 
+                                 <div class="flex-col">
+                                     <label for="notes" class="label">Notes</label>
+                                     <textarea id="notes" name="notes" class="textarea" rows="2">${vendor.notes || ''}</textarea>
+                                 </div>
+                             </div>
+
+                             <div class="card-footer flex-row justify-between">
+                                  ${isEdit ? `
+                                     <button type="button" class="btn btn-destructive" onclick="deleteVendor(state.editingVendor)">
+                                         <span data-lucide="trash-2" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                         Delete
+                                     </button>
+                                  ` : '<div></div>'}
+                                 <div class="flex-row gap-4">
+                                     <button type="button" class="btn btn-outline" onclick="setState({ showVendorModal: false, editingVendor: null })">Cancel</button>
+                                     <button type="submit" class="btn btn-primary" onclick="event.preventDefault(); saveDocument('vendors', getFormData('vendor-form'), state.editingVendor)">
+                                         <span data-lucide="save" style="width: 16px; height: 16px; margin-right: 8px;"></span>
+                                         ${isEdit ? 'Save Changes' : 'Save Vendor'}
+                                     </button>
+                                 </div>
+                             </div>
+                         </form>
+                     </div>
+                 </div>
+             `;
+        }
+
+
+        // --- MAIN RENDER FUNCTION ---
+
+        function render() {
+            const contentArea = document.getElementById('content-area');
+            const modalsContainer = document.getElementById('modals-container');
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            // 1. Update Navigation and Visibility based on Role
+            navLinks.forEach(link => {
+                const requiredRole = link.dataset.role;
+                link.classList.remove('active');
+
+                // Hide/Show navigation items based on user role
+                if (requiredRole === 'admin' && state.currentUser.role !== 'admin') {
+                     link.style.display = 'none';
+                } else if (requiredRole === 'manager-admin' && state.currentUser.role !== 'admin' && state.currentUser.role !== 'manager') {
+                     link.style.display = 'none';
+                } else {
+                     link.style.display = 'block';
+                }
+                
+                if (link.dataset.page === state.currentPage) {
+                    link.classList.add('active');
+                }
+            });
+
+            // 2. Render Main Content
+            let contentHTML = '';
+            switch (state.currentPage) {
+                case 'dashboard': contentHTML = renderDashboard(); break;
+                case 'assets': contentHTML = renderAssetsPage(); break;
+                case 'loans': contentHTML = renderLoansPage(); break;
+                case 'maintenance': contentHTML = renderMaintenancePage(); break;
+                case 'procurement': contentHTML = renderProcurementPage(); break;
+                case 'properties': contentHTML = renderPropertiesPage(); break;
+                case 'vendors': contentHTML = renderVendorsPage(); break;
+                case 'activity': contentHTML = renderActivityPage(); break;
+                case 'notifications': contentHTML = renderNotificationsPage(); break;
+                case 'reports': contentHTML = renderReportsPage(); break;
+                case 'settings': contentHTML = renderSettingsPage(); break;
+                case 'usermanagement': contentHTML = renderUserManagementPage(); break;
+                default: contentHTML = renderDashboard();
+            }
+            contentArea.innerHTML = contentHTML;
+
+            // 3. Render Modals (Only render one at a time)
+            let modalHTML = '';
+            if (state.showConfirmModal) modalHTML = renderConfirmModal();
+            else if (state.showAssetModal) modalHTML = renderAssetFormModal();
+            else if (state.showLoanModal) modalHTML = renderLoanFormModal();
+            else if (state.showMaintenanceModal) modalHTML = renderMaintenanceFormModal();
+            else if (state.showProcurementModal) modalHTML = renderProcurementFormModal();
+            else if (state.showPropertyModal) modalHTML = renderPropertyFormModal();
+            else if (state.showVendorModal) modalHTML = renderVendorFormModal();
+            
+            modalsContainer.innerHTML = modalHTML;
+            
+            // 4. Update Icons (Lucide)
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
+            }
+        }
+
+        // --- EVENT LISTENERS & INITIALIZATION ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize theme
+            initTheme();
+            // Start data fetching/polling
+            startDataPolling();
+
+            // Auth handlers
+            window.requestOtp = async function() {
+                const emailInput = document.getElementById('auth-email');
+                if (!emailInput || !emailInput.value) { showMessage("Please enter your email.", true); return; }
+                try {
+                    await fetchApi('auth/request_otp', 'POST', { email: emailInput.value });
+                    showMessage("OTP sent to your email.");
+                    localStorage.setItem('pendingEmail', emailInput.value);
+                } catch (e) {
+                    showMessage(e.message || "Failed to send OTP.", true);
+                }
+            }
+            window.verifyOtp = async function() {
+                const email = document.getElementById('auth-email')?.value || localStorage.getItem('pendingEmail') || '';
+                const code = document.getElementById('auth-otp')?.value || '';
+                if (!email || !code) { showMessage("Enter email and OTP.", true); return; }
+                try {
+                    const res = await fetchApi('auth/verify_otp', 'POST', { email, code });
+                    const user = res.user;
+                    setState({ currentUser: user, isAuthenticated: true });
+                    localStorage.setItem('authEmail', user.email);
+                    // Swap UI
+                    const authArea = document.getElementById('auth-area');
+                    const contentArea = document.getElementById('content-area');
+                    if (authArea && contentArea) { authArea.style.display = 'none'; contentArea.style.display = 'block'; }
+                    document.getElementById('user-display').textContent = `${user.full_name} (${user.role.toUpperCase()})`;
+                    const signoutBtn = document.getElementById('signout-btn');
+                    if (signoutBtn) signoutBtn.style.display = 'inline-flex';
+                    await loadAllData();
+                    showMessage("Signed in!");
+                } catch (e) {
+                    showMessage(e.message || "Failed to verify OTP.", true);
+                }
+            }
+            const signout = async function() {
+                const email = state.currentUser?.email || localStorage.getItem('authEmail') || '';
+                try { await fetchApi('auth/logout', 'POST', { email }); } catch (_) {}
+                localStorage.removeItem('authEmail');
+                localStorage.removeItem('pendingEmail');
+                setState({ currentUser: { role: 'guest', email: '', full_name: 'Guest' }, isAuthenticated: false });
+                // Swap UI
+                const authArea = document.getElementById('auth-area');
+                const contentArea = document.getElementById('content-area');
+                if (authArea && contentArea) { authArea.style.display = 'block'; contentArea.style.display = 'none'; }
+                const signoutBtn = document.getElementById('signout-btn');
+                if (signoutBtn) signoutBtn.style.display = 'none';
+                document.getElementById('user-display').textContent = `Signed out`;
+                showMessage("Signed out");
+            }
+            const signoutBtn = document.getElementById('signout-btn');
+            if (signoutBtn) { signoutBtn.addEventListener('click', signout); }
+
+            // Restore session if present
+            const savedEmail = localStorage.getItem('authEmail');
+            if (savedEmail) {
+                setState({ currentUser: { email: savedEmail, role: 'user', full_name: savedEmail }, isAuthenticated: true });
+                // Try to load actual user from backend
+                loadCurrentUser().then(() => { /* noop */ });
+            }
+            
+            // Handle page navigation clicks
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    setState({ currentPage: e.target.dataset.page, 
+                                // Reset modals/filters when switching pages
+                                assetFilters: { search: '', category: 'all', status: 'all' },
+                                showAssetModal: false, showLoanModal: false, showMaintenanceModal: false,
+                                showProcurementModal: false, showPropertyModal: false, showVendorModal: false,
+                                showConfirmModal: false, confirmAction: null,
+                             });
+                });
+            });
+            
+            // Initial render
+            render();
+        });
+
+    </script>
+</body>
+</html>
